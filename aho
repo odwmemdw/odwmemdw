@@ -32,7 +32,7 @@ BG.Draggable = true
 
 Title.Name = "Title"
 Title.Parent = BG
-Title.BackgroundColor3 = Color3.fromRGB(255, 69, 0) -- 赤
+Title.BackgroundColor3 = Color3.fromRGB(255, 69, 0)
 Title.BorderColor3 = Color3.fromRGB(255, 140, 0)
 Title.BorderSizePixel = 2
 Title.Size = UDim2.new(0, 210, 0, 33)
@@ -152,11 +152,11 @@ Toggle.MouseButton1Click:Connect(function()
     enabled = not enabled
     if enabled then
         Status.Text = "オン"
-        Status.TextColor3 = Color3.fromRGB(0, 255, 0) -- 緑
+        Status.TextColor3 = Color3.fromRGB(0, 255, 0)
         setupRepeatingHandler()
     else
         Status.Text = "オフ"
-        Status.TextColor3 = Color3.fromRGB(255, 0, 0) -- 赤
+        Status.TextColor3 = Color3.fromRGB(255, 0, 0)
         clearConnections()
     end
 end)
