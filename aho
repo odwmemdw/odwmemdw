@@ -12,7 +12,7 @@ local Status = Instance.new("TextLabel")
 local Credit = Instance.new("TextLabel")
 
 local LocalPlayer = Players.LocalPlayer
-local enabled = false管理
+local enabled = false
 local connections = {}
 local range = 3000
 
