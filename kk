@@ -555,17 +555,13 @@ BlobmanTab:AddDropdown({
         print("選択した手:", handSelection)
     end
 })
-local excludeFriends = false
-local blobmanCoroutine = nil
-local friendCache = {}
-local function updateFriendCache()
-    friendCache = {}
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-        if game:GetService("Players").LocalPlayer:IsFriendsWith(player.UserId) then
-            friendCache[player.UserId] = true
-        end
+
+local function blobGrabPlayer(player, blobman)
+    if blobman and player and player.Character then
+        print("Grabbed player:", player.Name)
     end
 end
+
 BlobmanTab:AddToggle({
     Name = "キックオール",
     Default = false,
@@ -578,18 +574,14 @@ BlobmanTab:AddToggle({
                 while blobman do
                     pcall(function()
                         for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-                            if excludeFriends and friendCache[player.UserId] then
-                                print(player.Name .. " はフレンドのため除外")
-                            else
-                                if player ~= game:GetService("Players").LocalPlayer then
-                                    blobGrabPlayer(player, blobman)
-                                    print(player.Name .. " が対象")
+                            if player ~= game:GetService("Players").LocalPlayer then
+                                blobGrabPlayer(player, blobman)
+                                print(player.Name .. " が対象")
                                 wait(_G.BlobmanDelay)
-                                end
                             end
                         end
                     end)
-                  task.wait()
+                    task.wait()
                 end
             end)
             coroutine.resume(blobmanCoroutine)
@@ -602,23 +594,63 @@ BlobmanTab:AddToggle({
         end
     end
 })
+
+BlobmanTab:AddSlider({
+    Name = "射精速度",
+    Min = 0,
+    Max = 1,
+    Default = _G.BlobmanDelay or 0.5,
+    Color = Color3.fromRGB(100, 255, 100),
+    Increment = 0.01,
+    Callback = function(value)
+        _G.BlobmanDelay = value
+        print("キックオール速度設定:", value)
+    end
+})
+
+local function isFriend(player)
+    return localPlayer:IsFriendsWith(player.UserId)
+end
+
 BlobmanTab:AddToggle({
-    Name = "フレンドがくらわなくなる",
+    Name = "フレンドがくらわない",
     Default = false,
-    Color = Color3.fromRGB(255, 0, 0),
+    Color = Color3.fromRGB(255, 50, 0),
     Callback = function(enabled)
-        excludeFriends = enabled
         if enabled then
             print("フレンド除外モード有効")
-            updateFriendCache()
+            blobmanCoroutine = coroutine.create(function()
+                blobman = findBlobman()
+                if not blobman then
+                    print("Blobmanが見つかりません")
+                    return
+                end
+
+                while enabled do
+                    pcall(function()
+                        for _, player in pairs(Players:GetPlayers()) do
+                            if blobman and player ~= localPlayer and not isFriend(player) then
+                                blobGrabPlayer(player, blobman)
+                                wait(_G.BlobmanDelay or 0)
+                            end
+                        end
+                    end)
+                    wait()
+                end
+            end)
+            coroutine.resume(blobmanCoroutine)
         else
-            print("フレンド除外モード無効")
+            if blobmanCoroutine then
+                coroutine.close(blobmanCoroutine)
+                blobmanCoroutine = nil
+                blobman = nil
+                print("フレンド除外モード無効")
+            end
         end
     end
 })
-game:GetService("Players").PlayerAdded:Connect(updateFriendCache)
-game:GetService("Players").PlayerRemoving:Connect(updateFriendCache)
-  local function findBlobman()
+
+local function findBlobman()
     for _, v in pairs(Workspace:GetDescendants()) do
         if v.Name == "CreatureBlobman" then
             if v:FindFirstChild("VehicleSeat") and v.VehicleSeat:FindFirstChild("SeatWeld") and v.VehicleSeat.SeatWeld.Part1:IsDescendantOf(localPlayer.Character) then
