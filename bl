@@ -1,0 +1,187 @@
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local localPlayer = Players.LocalPlayer
+local blobmanCoroutine = nil
+local autoBlobmanEnabled = false
+local handSelection = "両手"
+
+-- GUIの作成
+local BlobmanGUI = Instance.new("ScreenGui")
+local BG = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local MainToggle = Instance.new("TextButton")
+
+BlobmanGUI.Name = "BlobmanGUI"
+BlobmanGUI.Parent = game:GetService("CoreGui")
+
+-- 背景フレーム
+BG.Name = "BG"
+BG.Parent = BlobmanGUI
+BG.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+BG.BorderColor3 = Color3.new(0.2, 0.2, 0.2)
+BG.BorderSizePixel = 2
+BG.Position = UDim2.new(0.2, 0, 0.2, 0)
+BG.Size = UDim2.new(0, 300, 0, 150)
+BG.Active = true
+BG.Draggable = true
+
+-- タイトル
+Title.Name = "Title"
+Title.Parent = BG
+Title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.8)
+Title.BorderColor3 = Color3.new(0.1, 0.1, 0.5)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Font = Enum.Font.Highway
+Title.Text = "ワンタップキックオール"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 20
+
+ 
+ -- 閉じるボタン
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = BG
+CloseButton.BackgroundColor3 = Color3.new(0.8, 0, 0)
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Size = UDim2.new(0, 25, 0, 20)
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.TextSize = 14
+CloseButton.MouseButton1Click:Connect(function()
+    BlobmanGUI:Destroy()
+end)
+
+-- メイントグルボタン
+MainToggle.Name = "MainToggle"
+MainToggle.Parent = BG
+MainToggle.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+MainToggle.Position = UDim2.new(0.1, 0, 0.4, 0)
+MainToggle.Size = UDim2.new(0.8, 0, 0.3, 0)
+MainToggle.Font = Enum.Font.Highway
+MainToggle.Text = "オフ"
+MainToggle.TextColor3 = Color3.new(1, 1, 1)
+MainToggle.TextSize = 18
+
+
+local function findBlobman()
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if v.Name == "CreatureBlobman" then
+            if v:FindFirstChild("VehicleSeat") and v.VehicleSeat:FindFirstChild("SeatWeld") and v.VehicleSeat.SeatWeld.Part1:IsDescendantOf(localPlayer.Character) then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function spawnItemCf(itemName, cframe)
+    task.spawn(function()
+        local rotation = Vector3.new(0, 0, 0)
+        local success, err = pcall(function()
+            ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
+        end)
+        if success then
+            print("[INFO] アイテム " .. itemName .. " のスポーンリクエスト成功")
+        else
+            warn("[ERROR] アイテム " .. itemName .. " のスポーンリクエスト失敗: " .. tostring(err))
+        end
+    end)
+end
+
+local function findOwnedBlobman()
+    local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
+    if toysFolder then
+        for _, v in pairs(toysFolder:GetChildren()) do
+            if v.Name == "CreatureBlobman" then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function blobGrabPlayer(player, blobman)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if handSelection == "両手" or handSelection == "左手" then
+            local argsLeft = {
+                blobman:FindFirstChild("LeftDetector"),
+                player.Character:FindFirstChild("HumanoidRootPart"),
+                blobman:FindFirstChild("LeftDetector"):FindFirstChild("LeftWeld")
+            }
+            blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsLeft))
+        end
+        if handSelection == "両手" or handSelection == "右手" then
+            local argsRight = {
+                blobman:FindFirstChild("RightDetector"),
+                player.Character:FindFirstChild("HumanoidRootPart"),
+                blobman:FindFirstChild("RightDetector"):FindFirstChild("RightWeld")
+            }
+            blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsRight))
+        end
+    end
+end
+
+local function autoBlobman()
+    while autoBlobmanEnabled do
+        pcall(function()
+            local blobman = findOwnedBlobman()
+
+            if not blobman then
+                if localPlayer.CanSpawnToy and localPlayer.CanSpawnToy.Value and localPlayer.Character:FindFirstChild("Head") then
+                    print("[INFO] Blobmanをスポーン中...")
+                    spawnItemCf("CreatureBlobman", localPlayer.Character.Head.CFrame or localPlayer.Character.HumanoidRootPart.CFrame)
+                end
+            else
+                local vehicleSeat = blobman:FindFirstChild("VehicleSeat")
+                if vehicleSeat and not vehicleSeat:FindFirstChild("SeatWeld") then
+                    localPlayer.Character:MoveTo(vehicleSeat.Position + Vector3.new(0, 2, 0))
+                    local prompt = vehicleSeat:FindFirstChildOfClass("ProximityPrompt")
+                    if prompt then
+                        fireproximityprompt(prompt)
+                        print("[INFO] 自分のBlobmanに座りました!")
+                    else
+                        print("[WARN] VehicleSeatにProximityPromptが見つかりませんでした")
+                    end
+                end
+            end
+        end)
+        task.wait()
+    end
+end
+
+local function toggleMainFunctionality()
+    autoBlobmanEnabled = not autoBlobmanEnabled
+    if autoBlobmanEnabled then
+        print("[INFO] Blobman自動スポーンとキックオールを有効化")
+        MainToggle.Text = "オン"
+        MainToggle.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
+        task.spawn(autoBlobman)
+
+        blobmanCoroutine = coroutine.create(function()
+            while blobmanCoroutine do
+                local blobman = findBlobman()
+                if blobman then
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= localPlayer then
+                            blobGrabPlayer(player, blobman)
+                        end
+                    end
+                end
+                task.wait()
+            end
+        end)
+        coroutine.resume(blobmanCoroutine)
+    else
+        print("[INFO] Blobman自動スポーンとキックオールを無効化")
+        MainToggle.Text = "オフ"
+        MainToggle.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+        if blobmanCoroutine then
+            coroutine.close(blobmanCoroutine)
+            blobmanCoroutine = nil
+        end
+    end
+end
+
+MainToggle.MouseButton1Click:Connect(toggleMainFunctionality)
