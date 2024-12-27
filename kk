@@ -961,6 +961,61 @@ antiTab:AddToggle({
         end
     end
 })
+local function OptimizeScript(isEnabled)
+    if isEnabled then
+        
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
+                v.Enabled = false
+            elseif v:IsA("Explosion") then
+                v.Visible = false
+            elseif v:IsA("Attachment") then
+              
+                for _, child in pairs(v:GetChildren()) do
+                    if child:IsA("Light") then
+                        child.Enabled = false
+                    end
+                end
+            elseif v:IsA("Beam") then
+              
+                v.Enabled = false
+                v.FaceCamera = false
+            end
+        end
+
+        print("アンチラグ機能が有効化されました")
+    else
+      
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
+                v.Enabled = true
+            elseif v:IsA("Explosion") then
+                v.Visible = true
+            elseif v:IsA("Attachment") then
+            
+                for _, child in pairs(v:GetChildren()) do
+                    if child:IsA("Light") then
+                        child.Enabled = true
+                    end
+                end
+            elseif v:IsA("Beam") then
+              
+                v.Enabled = true
+                v.FaceCamera = true
+            end
+        end
+
+        print("アンチラグ機能が無効化されました")
+    end
+end
+
+antiTab:AddToggle({
+    Name = "アンチラグ",
+    Default = false,
+    Callback = function(value)
+        OptimizeScript(value)
+    end
+})
 
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
