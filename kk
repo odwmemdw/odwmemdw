@@ -1037,7 +1037,7 @@ playerTab:AddSlider({
     Min = 16,
     Max = 1000,
     Default = 5,
-    Color = Color3.fromRGB(122,122,122),
+    Color = Color3.fromRGB(150,120,250),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
@@ -1089,10 +1089,10 @@ local Toggle =  playerTab:AddToggle({
 
 playerTab:AddSlider({
     Name = "ジャンプ力",
-    Min = 50,
+    Min = 24,
     Max = 500,
     Default = 50,
-    Color = Color3.fromRGB(122,122,122),
+    Color = Color3.fromRGB(150,120,240),
     Increment = 1,
     ValueName = "jumpPower",
     Callback = function(jumpPower)
