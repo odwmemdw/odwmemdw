@@ -1017,11 +1017,119 @@ antiTab:AddToggle({
     end
 })
 
+local ToggleActive = false
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
     	Icon = "",
     	PremiumOnly = false
 })
+
+local Toggle = playerTab:AddToggle({
+    Name = "プレイヤー速度",
+    Default = false,
+    Callback = function(state)
+        ToggleActive = state
+    end
+})
+
+playerTab:AddSlider({
+    Name = "速度",
+    Min = 16,
+    Max = 1000,
+    Default = 5,
+    Color = Color3.fromRGB(122,122,122),
+    Increment = 1,
+    ValueName = "speed",
+    Callback = function(speed)
+        HackedWalkSpeed = speed
+
+        local Plrs = game:GetService("Players")
+        local MyPlr = Plrs.LocalPlayer
+        
+      
+        local function setWalkSpeed(Humanoid)
+            if ToggleActive then 
+                Humanoid.WalkSpeed = HackedWalkSpeed
+            end
+        end
+
+     
+        local function updateCharacter(Char)
+            local Humanoid = Char:WaitForChild("Humanoid")
+            setWalkSpeed(Humanoid)
+
+         
+            while true do
+                wait(0) 
+                if not ToggleActive then break end  
+                setWalkSpeed(Humanoid) 
+            end
+
+            Humanoid.Changed:connect(function()
+                setWalkSpeed(Humanoid)
+            end)
+        end
+
+     
+        if MyPlr.Character then
+            updateCharacter(MyPlr.Character)
+        end
+        
+        MyPlr.CharacterAdded:connect(updateCharacter)
+    end
+})
+
+local Toggle =  playerTab:AddToggle({
+    Name = "プレイヤーのジャンプ力",
+    Default = false,
+    Callback = function(state)
+        ToggleActive = state
+    end
+})
+
+playerTab:AddSlider({
+    Name = "ジャンプ力",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Color = Color3.fromRGB(122,122,122),
+    Increment = 1,
+    ValueName = "jumpPower",
+    Callback = function(jumpPower)
+        HackedJumpPower = jumpPower
+
+        local Plrs = game:GetService("Players")
+        local MyPlr = Plrs.LocalPlayer
+        
+        local function setJumpPower(Humanoid)
+            if ToggleActive then 
+                Humanoid.JumpPower = HackedJumpPower
+            end
+        end
+
+        local function updateCharacter(Char)
+            local Humanoid = Char:WaitForChild("Humanoid")
+            setJumpPower(Humanoid)
+
+            while true do
+                wait(0) 
+                if not ToggleActive then break end  
+                setJumpPower(Humanoid) 
+            end
+
+            Humanoid.Changed:connect(function()
+                setJumpPower(Humanoid)
+            end)
+        end
+
+        if MyPlr.Character then
+            updateCharacter(MyPlr.Character)
+        end
+        
+        MyPlr.CharacterAdded:connect(updateCharacter)
+    end
+})
+
     
 local InfiniteJumpEnabled = false
 
