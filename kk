@@ -964,40 +964,33 @@ antiTab:AddToggle({
 
 local HackedWalkSpeed = 16
 local ToggleActive = false
+
 local playerTab = Window:MakeTab({
-    	Name = "プレイヤー",
-    	Icon = "",
-    	PremiumOnly = false
+Name = "プレイヤー",
+Icon = "",
+PremiumOnly = false
 })
 
-   local ToggleActive = false
+playerTab:AddToggle({
+Name = "プレイヤー速度",
+Default = false,
+Callback = function(state)
+        ToggleActive = state
+end
+})
 
-    local playerTab = Window:MakeTab({
-        Name = "プレイヤー",
-        Icon = "",
-        PremiumOnly = false
-    })
-
-    playerTab:AddToggle({
-        Name = "プレイヤー速度",
-        Default = false,
-        Callback = function(state)
-            ToggleActive = state
-        end
-    })
-
-    playerTab:AddSlider({
-        Name = "速度",
-        Min = 16,
-        Max = 1000,
-        Default = 16,
-        Color = Color3.fromRGB(150, 120, 240),
-        Increment = 1,
-        ValueName = "speed",
-        Callback = function(speed)
-            HackedWalkSpeed = speed
-        end
-    })
+playerTab:AddSlider({
+Name = "速度",
+Min = 16,
+Max = 1000,
+Default = 16,
+Color = Color3.fromRGB(150, 120, 240),
+Increment = 1,
+ValueName = "speed",
+Callback = function(speed)
+        HackedWalkSpeed = speed
+end
+})
 
     local function setWalkSpeed(Humanoid)
         if ToggleActive and Humanoid then
