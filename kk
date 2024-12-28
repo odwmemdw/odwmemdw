@@ -961,7 +961,14 @@ antiTab:AddToggle({
         end
     end
 })
-local ToggleActive = false  
+
+local ToggleActive = false
+local playerTab = Window:MakeTab({
+    	Name = "プレイヤー",
+    	Icon = "",
+    	PremiumOnly = false
+})
+
 local Toggle = playerTab:AddToggle({
     Name = "プレイヤーの速度",
     Default = false,
@@ -969,13 +976,12 @@ local Toggle = playerTab:AddToggle({
         ToggleActive = state
     end
 })
-
 playerTab:AddSlider({
     Name = "速度",
     Min = 16,
     Max = 1000,
     Default = 5,
-    Color = Color3.fromRGB(150,122,240),
+    Color = Color3.fromRGB(122,122,122),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
@@ -1016,7 +1022,6 @@ playerTab:AddSlider({
         MyPlr.CharacterAdded:connect(updateCharacter)
     end
 })
-
 
 local Toggle =  playerTab:AddToggle({
     Name = "プレイヤーのジャンプ力",
