@@ -983,7 +983,7 @@ playerTab:AddSlider({
     Min = 16,
     Max = 1000,
     Default = 5,
-    Color = Color3.fromRGB(122,122,122),
+    Color = Color3.fromRGB(152,122,240),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
@@ -1038,7 +1038,7 @@ playerTab:AddSlider({
     Min = 50,
     Max = 500,
     Default = 50,
-    Color = Color3.fromRGB(122,122,122),
+    Color = Color3.fromRGB(150,122,240),
     Increment = 1,
     ValueName = "jumpPower",
     Callback = function(jumpPower)
