@@ -1,4 +1,3 @@
-
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
@@ -70,7 +69,7 @@ local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
-local Window = OrionLib:MakeWindow({Name = "鈴木んたま袋破裂", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+local Window = OrionLib:MakeWindow({Name = "鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
 
 local w = game:GetService("Workspace")
 local d = game:GetService("Debris")
@@ -962,61 +961,7 @@ antiTab:AddToggle({
         end
     end
 })
-local function OptimizeScript(isEnabled)
-    if isEnabled then
-        
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
-                v.Enabled = false
-            elseif v:IsA("Explosion") then
-                v.Visible = false
-            elseif v:IsA("Attachment") then
-              
-                for _, child in pairs(v:GetChildren()) do
-                    if child:IsA("Light") then
-                        child.Enabled = false
-                    end
-                end
-            elseif v:IsA("Beam") then
-              
-                v.Enabled = false
-                v.FaceCamera = false
-            end
-        end
 
-        print("アンチラグ機能が有効化されました")
-    else
-      
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
-                v.Enabled = true
-            elseif v:IsA("Explosion") then
-                v.Visible = true
-            elseif v:IsA("Attachment") then
-            
-                for _, child in pairs(v:GetChildren()) do
-                    if child:IsA("Light") then
-                        child.Enabled = true
-                    end
-                end
-            elseif v:IsA("Beam") then
-              
-                v.Enabled = true
-                v.FaceCamera = true
-            end
-        end
-
-        print("アンチラグ機能が無効化されました")
-    end
-end
-
-antiTab:AddToggle({
-    Name = "アンチラグ",
-    Default = false,
-    Callback = function(value)
-        OptimizeScript(value)
-    end
-})
 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
@@ -1038,7 +983,7 @@ playerTab:AddSlider({
     Min = 16,
     Max = 1000,
     Default = 5,
-    Color = Color3.fromRGB(150,120,250),
+    Color = Color3.fromRGB(122,122,122),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
@@ -1090,10 +1035,10 @@ local Toggle =  playerTab:AddToggle({
 
 playerTab:AddSlider({
     Name = "ジャンプ力",
-    Min = 24,
+    Min = 50,
     Max = 500,
     Default = 50,
-    Color = Color3.fromRGB(150,120,240),
+    Color = Color3.fromRGB(122,122,122),
     Increment = 1,
     ValueName = "jumpPower",
     Callback = function(jumpPower)
@@ -1131,9 +1076,7 @@ playerTab:AddSlider({
     end
 })
 
-    
 local InfiniteJumpEnabled = false
-
 playerTab:AddToggle({
         Name = "無限ジャンプ",
         Default = false,
@@ -1666,7 +1609,6 @@ AuraTab:AddToggle({
         end
     end
 })
-
 
 local LagTab = Window:MakeTab({
     Name = "ラグ",
@@ -2375,7 +2317,8 @@ local function updateTimer()
 local success, result = pcall(function()
         return workspace.Slots.Slots.Screen.SlotGui.TimeLeftFrame.TimeText.Text
 end)
-if success then
+
+    if success then
         timerLabel:Set(result)
     else
         timerLabel:Set("Error: Unable to fetch timer.")
@@ -2384,7 +2327,7 @@ end
 
 RunService.RenderStepped:Connect(updateTimer)
 
-local soundId = "rbxassetid://9127268181"
+
 
 OrionLib:Init()
 else
