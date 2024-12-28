@@ -2384,6 +2384,26 @@ end
 
 RunService.RenderStepped:Connect(updateTimer)
 
+local soundId = "rbxassetid://9127268181"
+local sound = Instance.new("Sound")
+sound.SoundId = soundId
+sound.Volume = 0.5
+sound.Looped = true
+sound.Parent = game.Workspace
+
+sound:Play()
+
+-- Wait for the desired duration (e.g., 25 seconds before starting to fade)
+wait(17)
+
+-- Fade out the sound by gradually lowering the volume
+for i = 0.5, 0, -0.05 do  -- Gradually decrease the volume from 0.5 to 0
+    sound.Volume = i
+    wait(0.1)  -- Adjust the speed of the fade-out by changing the wait time
+end
+
+-- Stop the sound after it fades out
+sound:Stop()
 
 
 OrionLib:Init()
