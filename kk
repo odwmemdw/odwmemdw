@@ -981,7 +981,7 @@ playerTab:AddSlider({
     Min = 16,
     Max = 1000,
     Default = 5,
-    Color = Color3.fromRGB(152,122,240),
+    Color = Color3.fromRGB(150,122,240),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
