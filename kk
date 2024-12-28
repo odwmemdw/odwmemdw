@@ -962,7 +962,7 @@ antiTab:AddToggle({
     end
 })
 
-
+local HackedWalkSpeed = 16
 local ToggleActive = false
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
@@ -977,7 +977,7 @@ local playerTab = Window:MakeTab({
         Icon = "",
         PremiumOnly = false
     })
-local HackedWalkSpeed = 16
+
     playerTab:AddToggle({
         Name = "プレイヤー速度",
         Default = false,
