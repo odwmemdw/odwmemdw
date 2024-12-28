@@ -970,7 +970,7 @@ local Toggle = playerTab:AddToggle({
     end
 })
 
-GrabTab:AddSlider({
+playerTab:AddSlider({
     Name = "速度",
     Min = 16,
     Max = 1000,
