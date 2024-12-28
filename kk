@@ -961,91 +961,61 @@ antiTab:AddToggle({
         end
     end
 })
-
-local HackedWalkSpeed = 16
-local ToggleActive = false
-
-local playerTab = Window:MakeTab({
-Name = "プレイヤー",
-Icon = "",
-PremiumOnly = false
-})
-
-playerTab:AddToggle({
-Name = "プレイヤー速度",
-Default = false,
-Callback = function(state)
+local ToggleActive = false  
+local Toggle = playerTab:AddToggle({
+    Name = "プレイヤーの速度",
+    Default = false,
+    Callback = function(state)
         ToggleActive = state
-end
+    end
 })
 
-playerTab:AddSlider({
-Name = "速度",
-Min = 16,
-Max = 1000,
-Default = 16,
-Color = Color3.fromRGB(150, 120, 240),
-Increment = 1,
-ValueName = "speed",
-Callback = function(speed)
+GrabTab:AddSlider({
+    Name = "速度",
+    Min = 16,
+    Max = 1000,
+    Default = 5,
+    Color = Color3.fromRGB(122,122,122),
+    Increment = 1,
+    ValueName = "speed",
+    Callback = function(speed)
         HackedWalkSpeed = speed
-end
+
+        local Plrs = game:GetService("Players")
+        local MyPlr = Plrs.LocalPlayer
+        
+      
+        local function setWalkSpeed(Humanoid)
+            if ToggleActive then 
+                Humanoid.WalkSpeed = HackedWalkSpeed
+            end
+        end
+
+     
+        local function updateCharacter(Char)
+            local Humanoid = Char:WaitForChild("Humanoid")
+            setWalkSpeed(Humanoid)
+
+         
+            while true do
+                wait(0) 
+                if not ToggleActive then break end  
+                setWalkSpeed(Humanoid) 
+            end
+
+            Humanoid.Changed:connect(function()
+                setWalkSpeed(Humanoid)
+            end)
+        end
+
+     
+        if MyPlr.Character then
+            updateCharacter(MyPlr.Character)
+        end
+        
+        MyPlr.CharacterAdded:connect(updateCharacter)
+    end
 })
-
-    local function setWalkSpeed(Humanoid)
-        if ToggleActive and Humanoid then
-            Humanoid.WalkSpeed = HackedWalkSpeed
-        else
-            Humanoid.WalkSpeed = 16
-        end
-    end
-
-    local function preventSliding(Character, Humanoid)
-        local RootPart = Character:FindFirstChild("HumanoidRootPart")
-        if RootPart then
-            if Humanoid.MoveDirection.Magnitude == 0 then
-  
-                RootPart.AssemblyLinearVelocity = Vector3.new(0, RootPart.AssemblyLinearVelocity.Y, 0)
-            else
-                local moveDir = Humanoid.MoveDirection * HackedWalkSpeed
-                RootPart.AssemblyLinearVelocity = Vector3.new(moveDir.X, 0, moveDir.Z)
-            end
-
-            if RootPart.AssemblyLinearVelocity.Y > 0 then
-                RootPart.AssemblyLinearVelocity = Vector3.new(
-                    RootPart.AssemblyLinearVelocity.X,
-                    math.min(0, RootPart.AssemblyLinearVelocity.Y),
-                    RootPart.AssemblyLinearVelocity.Z
-                )
-            end
-        end
-    end
-
-    local function updateCharacter(Char)
-        local Humanoid = Char:WaitForChild("Humanoid")
-        local RootPart = Char:WaitForChild("HumanoidRootPart")
-
-        setWalkSpeed(Humanoid)
-
-        Humanoid.Changed:Connect(function()
-            if Humanoid.Health > 0 then
-                setWalkSpeed(Humanoid)
-            end
-        end)
-
-        RunService.RenderStepped:Connect(function()
-            if ToggleActive then
-                setWalkSpeed(Humanoid)
-                preventSliding(Char, Humanoid)
-            end
-        end)
-    end
-
-    local MyPlr = Players.LocalPlayer
-    if MyPlr.Character then
-        updateCharacter(MyPlr.Character)
-    end
-    MyPlr.CharacterAdded:Connect(updateCharacter)
 
 
 local Toggle =  playerTab:AddToggle({
