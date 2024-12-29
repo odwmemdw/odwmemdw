@@ -364,7 +364,7 @@ local running = false
 GrabTab:AddToggle({
     Name = "ノークリップ掴み",
     Default = false,
-    Color = Color3.fromRGB(240, 0, 0),
+    Color = Color3.fromRGB(0, 1000, 0),
     Save = true,
     Flag = "NoclipGrab",
     Callback = function(enabled)
