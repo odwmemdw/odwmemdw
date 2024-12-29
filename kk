@@ -69,7 +69,7 @@ local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
-local Window = OrionLib:MakeWindow({Name = "鈴木んたま袋破裂", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+local Window = OrionLib:MakeWindow({Name = "鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
 
 local w = game:GetService("Workspace")
 local d = game:GetService("Debris")
@@ -359,44 +359,7 @@ GrabTab:AddToggle({
 })
 
 
-localPlayer.CharacterAdded:Connect(function(character)
-    playerCharacter = character
-end)
-local noclipGrabCoroutine
-
-local function noclipGrab()
-    while true do
-        local success, err = pcall(function()
-            local child = workspace:FindFirstChild("GrabParts")
-            if child and child.Name == "GrabParts" then
-                local grabPart = child:FindFirstChild("GrabPart")
-                local grabbedPart = grabPart:FindFirstChild("WeldConstraint").Part1
-                local character = grabbedPart.Parent
-                if character.HumanoidRootPart then
-                
-                    while workspace:FindFirstChild("GrabParts") do
-                        for _, part in pairs(character:GetChildren()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = false
-                            end
-                        end
-                        wait()
-                    end
-                
-                    for _, part in pairs(character:GetChildren()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = true
-                        end
-                    end
-                end
-            end
-        end)
-        if not success then
-            warn("Error in noclipGrab:", err)
-        end
-        wait()
-    end
-end
+local running = false
 
 GrabTab:AddToggle({
     Name = "ノークリップ掴み",
@@ -405,17 +368,53 @@ GrabTab:AddToggle({
     Save = true,
     Flag = "NoclipGrab",
     Callback = function(enabled)
-        if enabled then
-            noclipGrabCoroutine = coroutine.create(noclipGrab)
-            coroutine.resume(noclipGrabCoroutine)
-        else
-            if noclipGrabCoroutine then
-                coroutine.close(noclipGrabCoroutine)
-                noclipGrabCoroutine = nil
+        running = enabled
+        while running do
+            local success, err = pcall(function()
+                local grabParts = workspace:FindFirstChild("GrabParts")
+                if grabParts then
+                    local grabPart = grabParts:FindFirstChild("GrabPart")
+                    if grabPart then
+                        local weld = grabPart:FindFirstChild("WeldConstraint")
+                        if weld and weld.Part1 then
+                            local character = weld.Part1.Parent
+                            if character and character:FindFirstChild("HumanoidRootPart") then
+                                for _, part in ipairs(character:GetChildren()) do
+                                    if part:IsA("BasePart") then
+                                        part.CanCollide = false
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+            if not success then
+                warn(err)
+            end
+            wait()
+        end
+
+        local grabParts = workspace:FindFirstChild("GrabParts")
+        if grabParts then
+            local grabPart = grabParts:FindFirstChild("GrabPart")
+            if grabPart then
+                local weld = grabPart:FindFirstChild("WeldConstraint")
+                if weld and weld.Part1 then
+                    local character = weld.Part1.Parent
+                    if character then
+                        for _, part in ipairs(character:GetChildren()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = true
+                            end
+                        end
+                    end
+                end
             end
         end
     end
 })
+
 
 
 local blobman = nil
