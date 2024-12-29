@@ -962,6 +962,54 @@ antiTab:AddToggle({
     end
 })
 
+local isOptimized = false
+
+local function removeBeamsAndGrabParts(parent)
+    for _, obj in pairs(parent:GetDescendants()) do
+        if obj:IsA("Beam") then
+            obj:Destroy()
+        elseif obj:IsA("BasePart") and obj.Name == "GrabPart" then
+            obj:Destroy()
+        end
+    end
+end
+
+local function monitorWorkspace()
+    workspace.DescendantAdded:Connect(function(obj)
+        if isOptimized then
+            if obj:IsA("Beam") or (obj:IsA("BasePart") and obj.Name == "GrabPart") then
+                obj:Destroy()
+            end
+        end
+    end)
+end
+
+local function monitorPlayers()
+    game.Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function(character)
+            if isOptimized then
+                removeBeamsAndGrabParts(character)
+            end
+        end)
+    end)
+end
+
+antiTab:AddToggle({
+    Name = "アンチラグ",
+    Default = false,
+    Callback = function(value)
+        isOptimized = value
+        if isOptimized then
+            print("アンチラグ有効化")
+            removeBeamsAndGrabParts(workspace)
+            monitorWorkspace()
+            monitorPlayers()
+        else
+            print("アンチラグ解除")
+        end
+    end
+})
+
 local ToggleActive = false
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
