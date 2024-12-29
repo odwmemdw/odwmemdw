@@ -69,7 +69,7 @@ local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
-local Window = OrionLib:MakeWindow({Name = "鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+local Window = OrionLib:MakeWindow({Name = "鈴木んたま袋破裂", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
 
 local w = game:GetService("Workspace")
 local d = game:GetService("Debris")
@@ -356,6 +356,65 @@ GrabTab:AddToggle({
                 strengthConnection = nil
             end
         end
+})
+
+
+localPlayer.CharacterAdded:Connect(function(character)
+    playerCharacter = character
+end)
+local noclipGrabCoroutine
+
+local function noclipGrab()
+    while true do
+        local success, err = pcall(function()
+            local child = workspace:FindFirstChild("GrabParts")
+            if child and child.Name == "GrabParts" then
+                local grabPart = child:FindFirstChild("GrabPart")
+                local grabbedPart = grabPart:FindFirstChild("WeldConstraint").Part1
+                local character = grabbedPart.Parent
+                if character.HumanoidRootPart then
+                
+                    while workspace:FindFirstChild("GrabParts") do
+                        for _, part in pairs(character:GetChildren()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                        wait()
+                    end
+                
+                    for _, part in pairs(character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                end
+            end
+        end)
+        if not success then
+            warn("Error in noclipGrab:", err)
+        end
+        wait()
+    end
+end
+
+GrabTab:AddToggle({
+    Name = "ノークリップ掴み",
+    Default = false,
+    Color = Color3.fromRGB(240, 0, 0),
+    Save = true,
+    Flag = "NoclipGrab",
+    Callback = function(enabled)
+        if enabled then
+            noclipGrabCoroutine = coroutine.create(noclipGrab)
+            coroutine.resume(noclipGrabCoroutine)
+        else
+            if noclipGrabCoroutine then
+                coroutine.close(noclipGrabCoroutine)
+                noclipGrabCoroutine = nil
+            end
+        end
+    end
 })
 
 
@@ -962,53 +1021,6 @@ antiTab:AddToggle({
     end
 })
 
-local isOptimized = false
-
-local function removeBeamsAndGrabParts(parent)
-    for _, obj in pairs(parent:GetDescendants()) do
-        if obj:IsA("Beam") then
-            obj:Destroy()
-        elseif obj:IsA("BasePart") and obj.Name == "GrabPart" then
-            obj:Destroy()
-        end
-    end
-end
-
-local function monitorWorkspace()
-    workspace.DescendantAdded:Connect(function(obj)
-        if isOptimized then
-            if obj:IsA("Beam") or (obj:IsA("BasePart") and obj.Name == "GrabPart") then
-                obj:Destroy()
-            end
-        end
-    end)
-end
-
-local function monitorPlayers()
-    game.Players.PlayerAdded:Connect(function(player)
-        player.CharacterAdded:Connect(function(character)
-            if isOptimized then
-                removeBeamsAndGrabParts(character)
-            end
-        end)
-    end)
-end
-
-antiTab:AddToggle({
-    Name = "アンチラグ",
-    Default = false,
-    Callback = function(value)
-        isOptimized = value
-        if isOptimized then
-            print("アンチラグ有効化")
-            removeBeamsAndGrabParts(workspace)
-            monitorWorkspace()
-            monitorPlayers()
-        else
-            print("アンチラグ解除")
-        end
-    end
-})
 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
