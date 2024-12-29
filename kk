@@ -148,7 +148,6 @@ GrabTab:AddToggle({
     Name = "回転掴み（掴んだまま）",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -186,7 +185,6 @@ GrabTab:AddToggle({
     Name = "回転掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -246,7 +244,6 @@ GrabTab:AddToggle({
     Name = "掴んだ状態で飛ばす",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "FlyStraightToggle",
     Callback = function(enabled)
             if enabled then
@@ -283,7 +280,6 @@ GrabTab:AddToggle({
     Name = "上昇掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "LiftUpGrab",
     Callback = function(enabled)
         if enabled then
@@ -335,7 +331,6 @@ GrabTab:AddToggle({
     Name = "キル掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "KillToggle",
     Callback = function(enabled)
         if enabled then
@@ -365,7 +360,6 @@ GrabTab:AddToggle({
     Name = "ノークリップ掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "NoclipGrab",
     Callback = function(enabled)
         running = enabled
@@ -715,7 +709,6 @@ updateFriendCache()
 BlobmanTab:AddToggle({
     Name = "自動スポーンお座り",
     Default = false,
-    Save = true,
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
@@ -780,7 +773,6 @@ antiTab:AddToggle({
     Name = "無敵",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
-    Save = true,
     Flag = "FreezeToggle",
     Callback = function(value)
         isFrozen = value
