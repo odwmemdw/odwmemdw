@@ -1738,7 +1738,7 @@ local function getPlayerList()
 local playerList = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= localPlayer then
-            table.insert(playerList, player.DisplayName .. " (@" .. 
+            table.insert(playerList, player.DisplayName .. " (" .. 
 player.Name .. ")")
         end
     end
@@ -1764,7 +1764,7 @@ TeleportTab:AddDropdown({
     Options = getPlayerList(),
     Callback = function(selected)
         for _, player in pairs(Players:GetPlayers()) do
-            local displayNameWithUsername = player.DisplayName .. " (@" .. player.Name .. ")"
+            local displayNameWithUsername = player.DisplayName .. " (" .. player.Name .. ")"
             if selected == displayNameWithUsername then
                 selectedPlayer = player
                 print("選択されたプレイヤー:", selectedPlayer.Name)
