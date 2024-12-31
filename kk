@@ -148,6 +148,7 @@ GrabTab:AddToggle({
     Name = "回転掴み（掴んだまま）",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
+    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -185,6 +186,7 @@ GrabTab:AddToggle({
     Name = "回転掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -244,6 +246,7 @@ GrabTab:AddToggle({
     Name = "掴んだ状態で飛ばす",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "FlyStraightToggle",
     Callback = function(enabled)
             if enabled then
@@ -280,6 +283,7 @@ GrabTab:AddToggle({
     Name = "上昇掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "LiftUpGrab",
     Callback = function(enabled)
         if enabled then
@@ -331,6 +335,7 @@ GrabTab:AddToggle({
     Name = "キル掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
+    Save = true,
     Flag = "KillToggle",
     Callback = function(enabled)
         if enabled then
@@ -359,7 +364,8 @@ local running = false
 GrabTab:AddToggle({
     Name = "ノークリップ掴み",
     Default = false,
-    Color = Color3.fromRGB(0, 1000, 0),
+      Color = Color3.fromRGB(240, 0, 0),
+    Save = true,
     Flag = "NoclipGrab",
     Callback = function(enabled)
         running = enabled
@@ -495,6 +501,7 @@ local blobman = nil
 local handSelection = "両手"
 local excludeFriends = false
 local friendCache = {}
+local blobmanCoroutine
 
 local function updateFriendCache()
     friendCache = {}
@@ -506,23 +513,49 @@ local function updateFriendCache()
     print("フレンドキャッシュ更新:", friendCache)
 end
 
+local function isFriend(player)
+    return friendCache[player.UserId] or localPlayer:IsFriendsWith(player.UserId)
+end
+
 local function blobGrabPlayer(player, blobman)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        if handSelection == "両手" or handSelection == "左手" then
-            local argsLeft = {
-                blobman:FindFirstChild("LeftDetector"),
-                player.Character:FindFirstChild("HumanoidRootPart"),
-                blobman:FindFirstChild("LeftDetector"):FindFirstChild("LeftWeld")
-            }
-            blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsLeft))
+        local parts = {
+            player.Character:FindFirstChild("Left Arm"),
+            player.Character:FindFirstChild("Left Leg"),
+            player.Character:FindFirstChild("Right Arm"),
+            player.Character:FindFirstChild("Right Leg"),
+            player.Character:FindFirstChild("Head"),
+            player.Character:FindFirstChild("HumanoidRootPart")
+        }
+
+        for _, part in pairs(parts) do
+            task.spawn(function()
+                if part and part.Anchored then
+                    part.Anchored = false
+                end
+            end)
         end
+
+        if handSelection == "両手" or handSelection == "左手" then
+            task.spawn(function()
+                local argsLeft = {
+                    blobman:FindFirstChild("LeftDetector"),
+                    player.Character:FindFirstChild("HumanoidRootPart"),
+                    blobman:FindFirstChild("LeftDetector"):FindFirstChild("LeftWeld")
+                }
+                blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsLeft))
+            end)
+        end
+
         if handSelection == "両手" or handSelection == "右手" then
-            local argsRight = {
-                blobman:FindFirstChild("RightDetector"),
-                player.Character:FindFirstChild("HumanoidRootPart"),
-                blobman:FindFirstChild("RightDetector"):FindFirstChild("RightWeld")
-            }
-            blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsRight))
+            task.spawn(function()
+                local argsRight = {
+                    blobman:FindFirstChild("RightDetector"),
+                    player.Character:FindFirstChild("HumanoidRootPart"),
+                    blobman:FindFirstChild("RightDetector"):FindFirstChild("RightWeld")
+                }
+                blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsRight))
+            end)
         end
     end
 end
@@ -647,6 +680,7 @@ BlobmanTab:AddDropdown({
     end
 })
 
+
 BlobmanTab:AddToggle({
     Name = "キックオール",
     Default = false,
@@ -659,7 +693,7 @@ BlobmanTab:AddToggle({
                 while enabled do
                     pcall(function()
                         for _, player in pairs(Players:GetPlayers()) do
-                            if excludeFriends and friendCache[player.UserId] then
+                            if excludeFriends and isFriend(player) then
                                 print(player.Name .. " はフレンドのため除外")
                             else
                                 if player ~= localPlayer then
@@ -699,8 +733,26 @@ BlobmanTab:AddToggle({
     end
 })
 
-Players.PlayerAdded:Connect(updateFriendCache)
-Players.PlayerRemoving:Connect(updateFriendCache)
+Players.PlayerAdded:Connect(function(player)
+    if excludeFriends then
+        updateFriendCache()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if excludeFriends then
+        updateFriendCache()
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if excludeFriends then
+            updateFriendCache()
+        end
+        wait(1)
+    end
+end)
 
 updateFriendCache()
 
@@ -709,6 +761,7 @@ updateFriendCache()
 BlobmanTab:AddToggle({
     Name = "自動スポーンお座り",
     Default = false,
+    Save = true,
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
@@ -773,6 +826,7 @@ antiTab:AddToggle({
     Name = "無敵",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
+    Save = true,
     Flag = "FreezeToggle",
     Callback = function(value)
         isFrozen = value
@@ -808,71 +862,12 @@ local RS = game:GetService("ReplicatedStorage")
 local R = game:GetService("RunService")
 
 local Player = PS.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
 local CE = RS:WaitForChild("CharacterEvents")
 local BeingHeld = Player:WaitForChild("IsHeld")
 local StruggleEvent = CE:WaitForChild("Struggle")
 
 local AntiGrabEnabled = false
 local CurrentConnection = nil
-
-local function PreventBeingHeld()
-    local char = Player.Character or Player.CharacterAdded:Wait()
-    local rootPart = char:WaitForChild("HumanoidRootPart")
-
-    if CurrentConnection then
-        CurrentConnection:Disconnect()
-        CurrentConnection = nil
-    end
-
-    CurrentConnection = R.RenderStepped:Connect(function()
-        if AntiGrabEnabled and BeingHeld.Value == true then
-            for _ = 1, 30 do
-                StruggleEvent:FireServer(Player)
-            end
-
-            rootPart.AssemblyLinearVelocity = Vector3.zero
-            rootPart.AssemblyAngularVelocity = Vector3.zero
-            rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0.000001, 0)
-        elseif BeingHeld.Value == false then
-            if CurrentConnection then
-                CurrentConnection:Disconnect()
-                CurrentConnection = nil
-            end
-        end
-    end)
-end
-
-local function EnableAntiGrab()
-    BeingHeld.Changed:Connect(function()
-        if AntiGrabEnabled and BeingHeld.Value == true then
-            PreventBeingHeld()
-        end
-    end)
-end
-
-local function DisableAntiGrab()
-    if CurrentConnection then
-        CurrentConnection:Disconnect()
-        CurrentConnection = nil
-    end
-    print("アンチ掴み無効化")
-end
-
-Player.CharacterAdded:Connect(function(char)
-    local Humanoid = char:WaitForChild("Humanoid")
-    if Humanoid then
-        Humanoid.Changed:Connect(function(property)
-            if property == "Sit" and Humanoid.Sit == true then
-                if Humanoid.SeatPart and tostring(Humanoid.SeatPart.Parent) == "CreatureBlobman" then
-                else
-                    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
-                    Humanoid.Sit = false
-                end
-            end
-        end)
-    end
-end)
 
 antiTab:AddToggle({
     Name = "アンチ掴み",
@@ -882,26 +877,65 @@ antiTab:AddToggle({
         AntiGrabEnabled = Value
         if Value then
             print("アンチ掴み有効化")
-            EnableAntiGrab()
+
+            local char = Player.Character or Player.CharacterAdded:Wait()
+            local rootPart = char:WaitForChild("HumanoidRootPart")
+
+            -- Character Added Event
+            Player.CharacterAdded:Connect(function(newChar)
+                char = newChar
+                local Humanoid = newChar:WaitForChild("Humanoid")
+                if Humanoid then
+                    Humanoid.Changed:Connect(function(property)
+                        if property == "Sit" and Humanoid.Sit == true then
+                            if Humanoid.SeatPart and tostring(Humanoid.SeatPart.Parent) == "CreatureBlobman" then
+                            else
+                                Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+                                Humanoid.Sit = false
+                            end
+                        end
+                    end)
+                end
+                rootPart = newChar:WaitForChild("HumanoidRootPart")
+            end)
+
+            -- Anti Grab Logic
+            if CurrentConnection then
+                CurrentConnection:Disconnect()
+                CurrentConnection = nil
+            end
+
+            BeingHeld.Changed:Connect(function()
+                if AntiGrabEnabled and BeingHeld.Value == true then
+                    if CurrentConnection then
+                        CurrentConnection:Disconnect()
+                    end
+
+                    CurrentConnection = R.RenderStepped:Connect(function()
+                        for _ = 1, 30 do
+                            StruggleEvent:FireServer(Player)
+                        end
+
+                        rootPart.AssemblyLinearVelocity = Vector3.zero
+                        rootPart.AssemblyAngularVelocity = Vector3.zero
+                        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0.000001, 0)
+
+                        if BeingHeld.Value == false and CurrentConnection then
+                            CurrentConnection:Disconnect()
+                            CurrentConnection = nil
+                        end
+                    end)
+                end
+            end)
         else
-            DisableAntiGrab()
+            if CurrentConnection then
+                CurrentConnection:Disconnect()
+                CurrentConnection = nil
+            end
+            print("アンチ掴み無効化")
         end
     end
 })
-local function setupAntiExplosion(character)
-local humanoid = character:WaitForChild("Humanoid", 5)
-    if not humanoid then return end
-local ragdolled = humanoid:FindFirstChild("Ragdolled")
-    if ragdolled then
-      antiExplosionConnection = ragdolled:GetPropertyChangedSignal("Value"):Connect(function()
-            for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Anchored = ragdolled.Value
-                end
-            end
-        end)
-    end
-end
 
 antiTab:AddToggle({
     Name = "アンチ爆発",
@@ -911,13 +945,39 @@ antiTab:AddToggle({
     Callback = function(enabled)
         if enabled then
             if localPlayer.Character then
-                setupAntiExplosion(localPlayer.Character)
+                local humanoid = localPlayer.Character:WaitForChild("Humanoid", 5)
+                if humanoid then
+                    local ragdolled = humanoid:FindFirstChild("Ragdolled")
+                    if ragdolled then
+                        antiExplosionConnection = ragdolled:GetPropertyChangedSignal("Value"):Connect(function()
+                            for _, part in ipairs(localPlayer.Character:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    part.Anchored = ragdolled.Value
+                                end
+                            end
+                        end)
+                    end
+                end
             end
-                characterAddedConn = localPlayer.CharacterAdded:Connect(function(character)
+
+            characterAddedConn = localPlayer.CharacterAdded:Connect(function(character)
                 if antiExplosionConnection then
                     antiExplosionConnection:Disconnect()
                 end
-                setupAntiExplosion(character)
+
+                local humanoid = character:WaitForChild("Humanoid", 5)
+                if humanoid then
+                    local ragdolled = humanoid:FindFirstChild("Ragdolled")
+                    if ragdolled then
+                        antiExplosionConnection = ragdolled:GetPropertyChangedSignal("Value"):Connect(function()
+                            for _, part in ipairs(character:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    part.Anchored = ragdolled.Value
+                                end
+                            end
+                        end)
+                    end
+                end
             end)
         else
             if antiExplosionConnection then
@@ -932,7 +992,6 @@ antiTab:AddToggle({
     end
 })
 
-
 local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
 localPlayer.CharacterAdded:Connect(function(character)
     playerCharacter = character
@@ -940,23 +999,22 @@ end)
 local currentKunai = nil
 local kunaiSpawningEnabled = false
 local function spawnItemCf(itemName, cframe)
-local rotation = Vector3.new(90, 0, 0)
-local toy = ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
+    local rotation = Vector3.new(90, 0, 0)
+    local toy = ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
     return toy
 end
 local function attachKunaiToThigh()
     if currentKunai and currentKunai.Parent then 
         print("Kunai already exists. Skipping spawn.")
         return 
-end
-local torso = playerCharacter:WaitForChild("Torso", 5)
-local leftLeg = playerCharacter:FindFirstChild("Left Leg") or torso
-if torso and leftLeg then
-local kunaiPosition = torso.CFrame
-* CFrame.new(-0.5, -torso.Size.Y / 2, 0)
-* CFrame.Angles(math.rad(-100), 0, 0)
-spawnItemCf("NinjaKunai", kunaiPosition)
-for i = 1, 20 do
+    end
+    local torso = playerCharacter:WaitForChild("Torso", 5)
+    if torso then
+        local kunaiPosition = torso.CFrame
+            * CFrame.new(-0.5, -torso.Size.Y / 2, 0)
+            * CFrame.Angles(math.rad(-100), 0, 0)
+        spawnItemCf("NinjaKunai", kunaiPosition)
+        for i = 1, 20 do
             local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
             if toysFolder then
                 currentKunai = toysFolder:FindFirstChild("NinjaKunai")
@@ -966,25 +1024,20 @@ for i = 1, 20 do
             end
             task.wait()
         end
-if currentKunai then
-            currentKunai.PrimaryPart.Anchored = false
-local weld = Instance.new("WeldConstraint")
-      weld.Part0 = currentKunai.PrimaryPart
-      weld.Part1 = leftLeg
-      weld.Parent = currentKunai.PrimaryPart
-currentKunai.AncestryChanged:Connect(function(_, parent)
+        if currentKunai then
+            currentKunai.AncestryChanged:Connect(function(_, parent)
                 if not parent then
                     print("Kunai has been removed. Respawning...")
                     currentKunai = nil
                     attachKunaiToThigh()
                 end
-end)
-          print("Kunai has been attached to the thigh (R6).")
+            end)
+            print("Kunai has been spawned near the thigh.")
         else
             warn("Kunai could not be spawned. Retrying...")
         end
     else
-        warn("Torso or Left Leg not found!")
+        warn("Torso not found!")
     end
 end
 local function monitorKunai()
@@ -998,7 +1051,7 @@ local function monitorKunai()
     end
 end
 antiTab:AddToggle({
-    Name = "アンチキック（Beta）",
+    Name = "アンチキック",
     Default = false,
     Callback = function(value)
         kunaiSpawningEnabled = value
@@ -1012,7 +1065,6 @@ antiTab:AddToggle({
     end
 })
 
-
 local ToggleActive = false
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
@@ -1020,59 +1072,74 @@ local playerTab = Window:MakeTab({
     	PremiumOnly = false
 })
 
-local Toggle = playerTab:AddToggle({
-    Name = "プレイヤーの速度",
+local HackedWalkSpeed = 16
+playerTab:AddToggle({
+    Name = "プレイヤー速度",
     Default = false,
     Callback = function(state)
         ToggleActive = state
     end
 })
+
 playerTab:AddSlider({
     Name = "速度",
     Min = 16,
     Max = 1000,
-    Default = 5,
-    Color = Color3.fromRGB(150,122,240),
+    Default = 16,
+    Color = Color3.fromRGB(150, 122, 240),
     Increment = 1,
-    ValueName = "speed",
+    ValueName = "速さ",
     Callback = function(speed)
         HackedWalkSpeed = speed
-
-        local Plrs = game:GetService("Players")
-        local MyPlr = Plrs.LocalPlayer
-        
-      
-        local function setWalkSpeed(Humanoid)
-            if ToggleActive then 
-                Humanoid.WalkSpeed = HackedWalkSpeed
-            end
-        end
-
-     
-        local function updateCharacter(Char)
-            local Humanoid = Char:WaitForChild("Humanoid")
-            setWalkSpeed(Humanoid)
-
-         
-            while true do
-                wait(0) 
-                if not ToggleActive then break end  
-                setWalkSpeed(Humanoid) 
-            end
-
-            Humanoid.Changed:connect(function()
-                setWalkSpeed(Humanoid)
-            end)
-        end
-
-     
-        if MyPlr.Character then
-            updateCharacter(MyPlr.Character)
-        end
-        
-        MyPlr.CharacterAdded:connect(updateCharacter)
     end
 })
+
+local function setWalkSpeed(Humanoid)
+        if ToggleActive and Humanoid then
+            Humanoid.WalkSpeed = HackedWalkSpeed
+        else
+            Humanoid.WalkSpeed = 16
+        end
+    end
+
+    local function preventSliding(Character, Humanoid)
+        local RootPart = Character:FindFirstChild("HumanoidRootPart")
+        if RootPart then
+            if Humanoid.MoveDirection.Magnitude == 0 then
+                RootPart.AssemblyLinearVelocity = Vector3.new(0, RootPart.AssemblyLinearVelocity.Y, 0)
+            else
+                local moveDir = Humanoid.MoveDirection * HackedWalkSpeed
+                RootPart.AssemblyLinearVelocity = Vector3.new(moveDir.X, RootPart.AssemblyLinearVelocity.Y, moveDir.Z)
+            end
+        end
+    end
+
+local function updateCharacter(Char)
+        local Humanoid = Char:WaitForChild("Humanoid")
+        local RootPart = Char:WaitForChild("HumanoidRootPart")
+
+        setWalkSpeed(Humanoid)
+
+        Humanoid.Changed:Connect(function()
+            if Humanoid.Health > 0 then
+                setWalkSpeed(Humanoid)
+            end
+        end)
+
+        RunService.RenderStepped:Connect(function()
+            if ToggleActive then
+                setWalkSpeed(Humanoid)
+                preventSliding(Char, Humanoid)
+            end
+        end)
+    end
+
+    local MyPlr = Players.LocalPlayer
+    if MyPlr.Character then
+        updateCharacter(MyPlr.Character)
+    end
+    MyPlr.CharacterAdded:Connect(updateCharacter)
+
 
 local Toggle =  playerTab:AddToggle({
     Name = "プレイヤーのジャンプ力",
@@ -1089,7 +1156,7 @@ playerTab:AddSlider({
     Default = 50,
     Color = Color3.fromRGB(150,122,240),
     Increment = 1,
-    ValueName = "jumpPower",
+    ValueName = "高さ",
     Callback = function(jumpPower)
         HackedJumpPower = jumpPower
 
@@ -1738,7 +1805,7 @@ local function getPlayerList()
 local playerList = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= localPlayer then
-            table.insert(playerList, player.DisplayName .. " (" .. 
+            table.insert(playerList, player.DisplayName .. " (@" .. 
 player.Name .. ")")
         end
     end
@@ -1764,7 +1831,7 @@ TeleportTab:AddDropdown({
     Options = getPlayerList(),
     Callback = function(selected)
         for _, player in pairs(Players:GetPlayers()) do
-            local displayNameWithUsername = player.DisplayName .. " (" .. player.Name .. ")"
+            local displayNameWithUsername = player.DisplayName .. " (@" .. player.Name .. ")"
             if selected == displayNameWithUsername then
                 selectedPlayer = player
                 print("選択されたプレイヤー:", selectedPlayer.Name)
@@ -2375,7 +2442,6 @@ end)
 end
 
 RunService.RenderStepped:Connect(updateTimer)
-
 
 
 OrionLib:Init()
