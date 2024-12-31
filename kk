@@ -148,7 +148,6 @@ GrabTab:AddToggle({
     Name = "回転掴み（掴んだまま）",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -186,7 +185,6 @@ GrabTab:AddToggle({
     Name = "回転掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -246,7 +244,6 @@ GrabTab:AddToggle({
     Name = "掴んだ状態で飛ばす",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "FlyStraightToggle",
     Callback = function(enabled)
             if enabled then
@@ -283,7 +280,6 @@ GrabTab:AddToggle({
     Name = "上昇掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "LiftUpGrab",
     Callback = function(enabled)
         if enabled then
@@ -335,7 +331,6 @@ GrabTab:AddToggle({
     Name = "キル掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "KillToggle",
     Callback = function(enabled)
         if enabled then
@@ -364,8 +359,7 @@ local running = false
 GrabTab:AddToggle({
     Name = "ノークリップ掴み",
     Default = false,
-      Color = Color3.fromRGB(240, 0, 0),
-    Save = true,
+    Color = Color3.fromRGB(240, 0, 0),
     Flag = "NoclipGrab",
     Callback = function(enabled)
         running = enabled
@@ -721,9 +715,10 @@ BlobmanTab:AddToggle({
 BlobmanTab:AddToggle({
     Name = "ホワイトリストフレンド",
     Default = false,
+    Save = true,
     Color = Color3.fromRGB(255, 0, 0),
     Callback = function(enabled)
-        excludeFriends = enabled
+  excludeFriends = enabled
         if enabled then
             print("フレンド除外モード有効")
             updateFriendCache()
@@ -761,7 +756,6 @@ updateFriendCache()
 BlobmanTab:AddToggle({
     Name = "自動スポーンお座り",
     Default = false,
-    Save = true,
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
@@ -826,7 +820,6 @@ antiTab:AddToggle({
     Name = "無敵",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
-    Save = true,
     Flag = "FreezeToggle",
     Callback = function(value)
         isFrozen = value
@@ -1584,7 +1577,7 @@ AuraTab:AddToggle({
                                                 task.wait(0.1)
                                                 local velocity = playerTorso:FindFirstChild("l") or Instance.new("BodyVelocity", playerTorso)
                                                 velocity.Name = "l"
-                                                velocity.Velocity = Vector3.new(0, 0, 0)
+                                                velocity.Velocity = Vector3.new(0, 90000000000, 0)
                                                 velocity.MaxForce = Vector3.new(0, math.huge, 0)
                                                 Debris:AddItem(velocity, 1000000000000)
                                             end
