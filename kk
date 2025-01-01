@@ -1577,7 +1577,7 @@ AuraTab:AddToggle({
                                                 task.wait(0.1)
                                                 local velocity = playerTorso:FindFirstChild("l") or Instance.new("BodyVelocity", playerTorso)
                                                 velocity.Name = "l"
-                                                velocity.Velocity = Vector3.new(0, 90000000000, 0)
+                                                velocity.Velocity = Vector3.new(0, 0, 0)
                                                 velocity.MaxForce = Vector3.new(0, math.huge, 0)
                                                 Debris:AddItem(velocity, 1000000000000)
                                             end
