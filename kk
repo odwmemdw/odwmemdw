@@ -148,6 +148,7 @@ GrabTab:AddToggle({
     Name = "回転掴み（掴んだまま）",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
+    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -185,6 +186,7 @@ GrabTab:AddToggle({
     Name = "回転掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -244,6 +246,7 @@ GrabTab:AddToggle({
     Name = "掴んだ状態で飛ばす",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "FlyStraightToggle",
     Callback = function(enabled)
             if enabled then
@@ -280,6 +283,7 @@ GrabTab:AddToggle({
     Name = "上昇掴み",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
+    Save = true,
     Flag = "LiftUpGrab",
     Callback = function(enabled)
         if enabled then
@@ -331,6 +335,7 @@ GrabTab:AddToggle({
     Name = "キル掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
+    Save = true,
     Flag = "KillToggle",
     Callback = function(enabled)
         if enabled then
@@ -359,7 +364,8 @@ local running = false
 GrabTab:AddToggle({
     Name = "ノークリップ掴み",
     Default = false,
-    Color = Color3.fromRGB(240, 0, 0),
+      Color = Color3.fromRGB(240, 0, 0),
+    Save = true,
     Flag = "NoclipGrab",
     Callback = function(enabled)
         running = enabled
@@ -523,38 +529,32 @@ local function blobGrabPlayer(player, blobman)
         }
 
         for _, part in pairs(parts) do
-            if part then
-                task.spawn(function()
+            task.spawn(function()
+                if part and part.Anchored then
                     part.Anchored = false
-                end)
-            end
+                end
+            end)
         end
 
         if handSelection == "両手" or handSelection == "左手" then
             task.spawn(function()
-                local leftDetector = blobman:FindFirstChild("LeftDetector")
-                if leftDetector then
-                    local argsLeft = {
-                        leftDetector,
-                        player.Character:FindFirstChild("HumanoidRootPart"),
-                        leftDetector:FindFirstChild("LeftWeld")
-                    }
-                    blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsLeft))
-                end
+                local argsLeft = {
+                    blobman:FindFirstChild("LeftDetector"),
+                    player.Character:FindFirstChild("HumanoidRootPart"),
+                    blobman:FindFirstChild("LeftDetector"):FindFirstChild("LeftWeld")
+                }
+                blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsLeft))
             end)
         end
 
         if handSelection == "両手" or handSelection == "右手" then
             task.spawn(function()
-                local rightDetector = blobman:FindFirstChild("RightDetector")
-                if rightDetector then
-                    local argsRight = {
-                        rightDetector,
-                        player.Character:FindFirstChild("HumanoidRootPart"),
-                        rightDetector:FindFirstChild("RightWeld")
-                    }
-                    blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsRight))
-                end
+                local argsRight = {
+                    blobman:FindFirstChild("RightDetector"),
+                    player.Character:FindFirstChild("HumanoidRootPart"),
+                    blobman:FindFirstChild("RightDetector"):FindFirstChild("RightWeld")
+                }
+                blobman:WaitForChild("BlobmanSeatAndOwnerScript"):WaitForChild("CreatureGrab"):FireServer(unpack(argsRight))
             end)
         end
     end
@@ -572,8 +572,11 @@ local function findBlobman()
 end
 
 
-_G.ToyToLoad = "CreatureBlobman"
-_G.MaxBlobman = 1
+local config = {
+    ToyToLoad = "CreatureBlobman",
+    MaxBlobman = 1,
+    AutoBlobmanEnabled = false
+}
 
 local localPlayer = game.Players.LocalPlayer
 local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
@@ -583,7 +586,6 @@ localPlayer.CharacterAdded:Connect(function(character)
 end)
 
 local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
-local autoBlobmanEnabled = false
 
 local function spawnItemCf(itemName, cframe)
     task.spawn(function()
@@ -617,14 +619,14 @@ end
 
 local function autoBlobman()
     local checkInterval = 0
-    while autoBlobmanEnabled do
+    while config.AutoBlobmanEnabled do
         pcall(function()
             local blobman = findOwnedBlobman()
 
             if not blobman then
                 if localPlayer.CanSpawnToy and localPlayer.CanSpawnToy.Value and playerCharacter:FindFirstChild("Head") then
                     print("[INFO] Blobmanをスポーン中...")
-                    spawnItemCf(_G.ToyToLoad, playerCharacter.Head.CFrame or playerCharacter.HumanoidRootPart.CFrame)
+                    spawnItemCf(config.ToyToLoad, playerCharacter.Head.CFrame or playerCharacter.HumanoidRootPart.CFrame)
                 end
             else
                 local vehicleSeat = blobman:FindFirstChild("VehicleSeat")
@@ -644,9 +646,8 @@ local function autoBlobman()
     end
 end
 
-
 local function toggleAutoBlobman(enabled)
-    autoBlobmanEnabled = enabled
+    config.AutoBlobmanEnabled = enabled
     if enabled then
         print("[INFO] 自動Blobman機能を有効化しました")
         task.spawn(autoBlobman)
@@ -654,6 +655,7 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
+
 
 local function findBlobman()
     for _, v in pairs(workspace:GetDescendants()) do
@@ -721,10 +723,9 @@ BlobmanTab:AddToggle({
 BlobmanTab:AddToggle({
     Name = "ホワイトリストフレンド",
     Default = false,
-    Save = true,
     Color = Color3.fromRGB(255, 0, 0),
     Callback = function(enabled)
-  excludeFriends = enabled
+        excludeFriends = enabled
         if enabled then
             print("フレンド除外モード有効")
             updateFriendCache()
@@ -762,6 +763,7 @@ updateFriendCache()
 BlobmanTab:AddToggle({
     Name = "自動スポーンお座り",
     Default = false,
+    Save = true,
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
@@ -826,6 +828,7 @@ antiTab:AddToggle({
     Name = "無敵",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
+    Save = true,
     Flag = "FreezeToggle",
     Callback = function(value)
         isFrozen = value
@@ -1064,13 +1067,11 @@ antiTab:AddToggle({
     end
 })
 
-
- 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
-    Name = "プレイヤー",
-    Icon = "",
-    PremiumOnly = false
+    	Name = "プレイヤー",
+    	Icon = "",
+    	PremiumOnly = false
 })
 
 local HackedWalkSpeed = 16
@@ -1096,60 +1097,50 @@ playerTab:AddSlider({
 })
 
 local function setWalkSpeed(Humanoid)
-    if ToggleActive and Humanoid then
-        Humanoid.WalkSpeed = HackedWalkSpeed
-    else
-        Humanoid.WalkSpeed = 16
+        if ToggleActive and Humanoid then
+            Humanoid.WalkSpeed = HackedWalkSpeed
+        else
+            Humanoid.WalkSpeed = 16
+        end
     end
-end
 
-local function moveUsingLegsR6(Character, Humanoid)
-    local RootPart = Character:FindFirstChild("HumanoidRootPart")
-    local LeftLeg = Character:FindFirstChild("Left Leg")
-    local RightLeg = Character:FindFirstChild("Right Leg")
+    local function preventSliding(Character, Humanoid)
+        local RootPart = Character:FindFirstChild("HumanoidRootPart")
+        if RootPart then
+            if Humanoid.MoveDirection.Magnitude == 0 then
+                RootPart.AssemblyLinearVelocity = Vector3.new(0, RootPart.AssemblyLinearVelocity.Y, 0)
+            else
+                local moveDir = Humanoid.MoveDirection * HackedWalkSpeed
+                RootPart.AssemblyLinearVelocity = Vector3.new(moveDir.X, RootPart.AssemblyLinearVelocity.Y, moveDir.Z)
+            end
+        end
+    end
 
-    if RootPart and LeftLeg and RightLeg then
-        -- RootPartを固定
-        RootPart.Anchored = true
+local function updateCharacter(Char)
+        local Humanoid = Char:WaitForChild("Humanoid")
+        local RootPart = Char:WaitForChild("HumanoidRootPart")
+
+        setWalkSpeed(Humanoid)
+
+        Humanoid.Changed:Connect(function()
+            if Humanoid.Health > 0 then
+                setWalkSpeed(Humanoid)
+            end
+        end)
 
         RunService.RenderStepped:Connect(function()
             if ToggleActive then
-                -- 移動方向に応じて両足を動かす
-                local moveDir = Humanoid.MoveDirection * HackedWalkSpeed * RunService.RenderStepped:Wait()
-
-                -- 左足と右足を動かす
-                LeftLeg.CFrame = LeftLeg.CFrame + moveDir / 2
-                RightLeg.CFrame = RightLeg.CFrame + moveDir / 2
+                setWalkSpeed(Humanoid)
+                preventSliding(Char, Humanoid)
             end
         end)
     end
-end
 
-local function updateCharacterR6(Char)
-    local Humanoid = Char:WaitForChild("Humanoid")
-    local RootPart = Char:WaitForChild("HumanoidRootPart")
-
-    -- ウォークスピード設定
-    setWalkSpeed(Humanoid)
-
-    -- 足だけで移動処理を追加
-    moveUsingLegsR6(Char, Humanoid)
-end
-
-local MyPlr = Players.LocalPlayer
-
--- R6専用処理のための確認
-if MyPlr.Character and MyPlr.Character:FindFirstChild("Torso") then
-    updateCharacterR6(MyPlr.Character)
-end
-
-MyPlr.CharacterAdded:Connect(function(Char)
-    if Char:FindFirstChild("Torso") then
-        updateCharacterR6(Char)
-    else
-        warn("R6モデルではありません。このスクリプトはR6専用です。")
+    local MyPlr = Players.LocalPlayer
+    if MyPlr.Character then
+        updateCharacter(MyPlr.Character)
     end
-end)
+    MyPlr.CharacterAdded:Connect(updateCharacter)
 
 
 local Toggle =  playerTab:AddToggle({
@@ -1162,9 +1153,9 @@ local Toggle =  playerTab:AddToggle({
 
 playerTab:AddSlider({
     Name = "ジャンプ力",
-    Min = 50,
+    Min = 24,
     Max = 500,
-    Default = 50,
+    Default = 24,
     Color = Color3.fromRGB(150,122,240),
     Increment = 1,
     ValueName = "高さ",
@@ -1595,7 +1586,7 @@ AuraTab:AddToggle({
                                                 task.wait(0.1)
                                                 local velocity = playerTorso:FindFirstChild("l") or Instance.new("BodyVelocity", playerTorso)
                                                 velocity.Name = "l"
-                                                velocity.Velocity = Vector3.new(0, 90000000000, 0)
+                                                velocity.Velocity = Vector3.new(0, 0, 0)
                                                 velocity.MaxForce = Vector3.new(0, math.huge, 0)
                                                 Debris:AddItem(velocity, 1000000000000)
                                             end
@@ -1737,146 +1728,6 @@ AuraTab:AddToggle({
     end
 })
 
-local _G = _G or {}
-_G.ToyToLoad = "BallSnowball"
-_G.MaxBallSnowball = 1
-
-localPlayer.CharacterAdded:Connect(function(character)
-    playerCharacter = character
-end)
-
-local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
-local autoSpawnEnabled = false
-local targetPlayerName = ""
-
-local selectedToy = "BallSnowball"
-local toyOptions = { "BallSnowball", "BombMissile" }
-
-local kasuTab = Window:MakeTab({
-    Name = "爆発系と突破",
-    Icon = "",
-    PremiumOnly = false
-})
-
-kasuTab:AddDropdown({
-    Name = "当てる物",
-    Default = "BallSnowball",
-    Options = toyOptions,
-    Callback = function(selected)
-        selectedToy = selected
-        print("[INFO] スポーンするおもちゃが " .. selectedToy .. " に設定されました")
-    end
-})
-
-kasuTab:AddDropdown({
-    Name = "ターゲットプレイヤー（バグあり）",
-    Default = "",
-    Options = {},
-    Callback = function(selected)
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if selected == player.Name .. " (" .. player.DisplayName .. ")" then
-                targetPlayerName = player.Name
-                print("[INFO] ターゲットプレイヤーが " .. player.DisplayName .. " に設定されました")
-                break
-            end
-        end
-    end,
-    AllowCustom = false
-})
-
-kasuTab:AddToggle({
-    Name = "当てる",
-    Default = false,
-    Callback = function(enabled)
-        autoSpawnEnabled = enabled
-        if enabled then
-            print("[INFO] 自動スポーン機能を有効化しました")
-            task.spawn(function()
-                while autoSpawnEnabled do
-                    local toysFolderCheck = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
-                    if toysFolderCheck then
-                        toysFolder = toysFolderCheck
-                    end
-
-                    local toy = nil
-                    if toysFolder then
-                        for _, v in pairs(toysFolder:GetChildren()) do
-                            if v.Name == selectedToy then
-                                toy = v
-                                break
-                            end
-                        end
-                    end
-
-                    if not toy then
-                        if localPlayer:FindFirstChild("CanSpawnToy") and localPlayer.CanSpawnToy.Value and playerCharacter:FindFirstChild("Head") then
-                            local rotation = Vector3.new(0, 0, 0)
-                            local success, err = pcall(function()
-                                game:GetService("ReplicatedStorage").MenuToys.SpawnToyRemoteFunction:InvokeServer(
-                                    selectedToy,
-                                    playerCharacter.Head.CFrame or playerCharacter.HumanoidRootPart.CFrame,
-                                    rotation
-                                )
-                            end)
-                            if success then
-                                print("[INFO] " .. selectedToy .. " をスポーンしました")
-                            else
-                                warn("[ERROR] " .. selectedToy .. " のスポーンに失敗しました: " .. tostring(err))
-                            end
-                        end
-                    else
-                        local targetPlayer = game.Players:FindFirstChild(targetPlayerName)
-                        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            local targetCFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-                            if toy:FindFirstChild("PrimaryPart") then
-                                toy:SetPrimaryPartCFrame(targetCFrame)
-                                print("[INFO] " .. toy.Name .. " を " .. targetPlayer.DisplayName .. " にテレポートしました")
-                            else
-                                print("[WARN] " .. toy.Name .. " に PrimaryPart が設定されていません")
-                            end
-                        else
-                            print("[WARN] ターゲットプレイヤーが無効です")
-                        end
-                    end
-
-                    task.wait(0.5)
-                end
-            end)
-        else
-            print("[INFO] 自動スポーン機能を無効化しました")
-        end
-    end
-})
-
--- プレイヤーリストを更新する関数
-local function updatePlayerList()
-    local playerList = {}
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= localPlayer then
-            table.insert(playerList, player.Name .. " (" .. player.DisplayName .. ")")
-        end
-    end
-    local dropdown = kasuTab:GetElement("ターゲットプレイヤー")
-    if dropdown then
-        dropdown:SetOptions(playerList)
-    else
-        print("[WARN] ターゲットプレイヤーのドロップダウン要素が見つかりません")
-    end
-end
-
--- 定期的にプレイヤーリストを更新
-task.spawn(function()
-    while true do
-        task.wait(5)
-        updatePlayerList()
-    end
-end)
-
--- プレイヤーの入退出イベントでリストを更新
-game.Players.PlayerAdded:Connect(updatePlayerList)
-game.Players.PlayerRemoving:Connect(updatePlayerList)
-
-
 local LagTab = Window:MakeTab({
     Name = "ラグ",
     Icon = "",
@@ -1943,9 +1794,6 @@ LagTab:AddToggle({
         end
     end
 })
-
-
-
 local TeleportTab = Window:MakeTab({
       Name = "テレポート",
       PremiumOnly = false
@@ -2192,8 +2040,106 @@ local miscTab = Window:MakeTab({
       Icon = "",
       PremiumOnly = false
 })
+    
+local autoAimEnabled = false
+local fov = 100
+local maxDistance = 50
+local maxTransparency = 0.1
+local teamCheck = false
+    
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Cam = game.Workspace.CurrentCamera
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = true
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Cam.ViewportSize / 2
+    
+local function updateDrawings()
+local camViewportSize = Cam.ViewportSize
+      FOVring.Position = camViewportSize / 2
+end
+    
+local function lookAt(target)
+local lookVector = (target - Cam.CFrame.Position).unit
+local newCFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + lookVector)
+        Cam.CFrame = newCFrame
+end
 
+local function calculateTransparency(distance)
+        local transparency = (1 - (distance / fov)) * maxTransparency
+        return transparency
+    end
+local function isPlayerAlive(player)
+local character = player.Character
+        if character and character:FindFirstChild("Humanoid") then
+            return character.Humanoid.Health > 0
+    end
+    return false
+end
 
+local function getClosestPlayerInFOV(trg_part)
+local nearest = nil
+local last = math.huge
+local playerMousePos = Cam.ViewportSize / 2
+local localPlayer = Players.LocalPlayer
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= localPlayer and (not teamCheck or player.Team ~= localPlayer.Team) then
+                if isPlayerAlive(player) then
+                    local part = player.Character and player.Character:FindFirstChild(trg_part)
+                    if part then
+                        local ePos, isVisible = Cam:WorldToViewportPoint(part.Position)
+                        local distance = (Vector2.new(ePos.X, ePos.Y) - playerMousePos).Magnitude
+    
+                        if distance < last and isVisible and distance < fov and distance < maxDistance then
+                            last = distance
+                            nearest = player
+                        end
+                    end
+                end
+            end
+        end
+        return nearest
+    end
+local function toggleAutoAim(state)
+autoAimEnabled = state
+       if autoAimEnabled then
+         RunService:BindToRenderStep("AutoAim", Enum.RenderPriority.Camera.Value, function()
+                updateDrawings()
+                local closest = getClosestPlayerInFOV("Head")
+                if closest and closest.Character:FindFirstChild("Head") then
+                    lookAt(closest.Character.Head.Position)
+                end
+                
+                if closest then
+                    local ePos, isVisible = Cam:WorldToViewportPoint(closest.Character.Head.Position)
+                    local distance = (Vector2.new(ePos.X, ePos.Y) - (Cam.ViewportSize / 2)).Magnitude
+                FOVring.Transparency = calculateTransparency(distance)
+            else
+                FOVring.Transparency = maxTransparency
+            end
+        end)
+    else
+        RunService:UnbindFromRenderStep("AutoAim")
+        FOVring.Transparency = maxTransparency
+    end
+end
+miscTab:AddToggle({
+    Name = "オートエイム",
+    Default = false,
+    Callback = function(state)
+    toggleAutoAim(state)
+    end
+})
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
 local espEnabled = false
 local espConnections = {}
 local function createESP(player)
@@ -2277,66 +2223,44 @@ local saymsg = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSys
 local getmsg = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnMessageDoneFiltering")
 local Config = {
     enabled = false,
-    spyOnMyself = true,
-}
+    spyOnMyself = true,}
 local PrivateProperties = {
-    Color = Color3.fromRGB(0, 255, 0),
+    Color = Color3.fromRGB(0, 500, 0),
     Font = Enum.Font.SourceSansBold,
     TextSize = 18,
 }
+local function onChatted(p, msg)
+    if Config.enabled and (Config.spyOnMyself == true or p ~= player) then
+        msg = msg:gsub("[\n\r]", ''):gsub("\t", ' '):gsub("[ ]+", ' ')
+        local hidden = true
+        local conn = getmsg.OnClientEvent:Connect(function(packet, channel)
+            if packet.SpeakerUserId == p.UserId and packet.Message == msg:sub(#msg - #packet.Message + 1) and (channel == "All" or (channel == "Team" and Players[packet.FromSpeaker].Team == player.Team)) then
+                hidden = false
+            end
+        end)
+        wait(1)
+        conn:Disconnect()
+        if hidden and Config.enabled then
+            local formattedMessage = "[" .. p.Name .. "] : " .. msg
+            saymsg:FireServer(formattedMessage, "All")
+        end
+    end
+end
+for _, p in ipairs(Players:GetPlayers()) do
+    p.Chatted:Connect(function(msg) onChatted(p, msg) end)
+end
+Players.PlayerAdded:Connect(function(p)
+    p.Chatted:Connect(function(msg) onChatted(p, msg) end)
+end)
 
 miscTab:AddToggle({
     Name = "チャットスパイ",
     Default = false,
     Callback = function(value)
         Config.enabled = value
-
-        -- ステータスを通知
-        PrivateProperties.Text = "{チャットスパイ " .. (Config.enabled and "ENABLED" or "DISABLED") .. "}"
+        PrivateProperties.Text = "{あそこ痒い" .. (Config.enabled and "ENABLED" or "DISABLED") .. "}"
         StarterGui:SetCore("ChatMakeSystemMessage", PrivateProperties)
-
-        if Config.enabled then
-            for _, p in ipairs(Players:GetPlayers()) do
-                p.Chatted:Connect(function(msg)
-                    if Config.enabled and (Config.spyOnMyself or p ~= player) then
-                        msg = msg:gsub("[\n\r]", ''):gsub("\t", ' '):gsub("[ ]+", ' ')
-                        local hidden = true
-                        local conn = getmsg.OnClientEvent:Connect(function(packet, channel)
-                            if packet.SpeakerUserId == p.UserId and packet.Message == msg:sub(#msg - #packet.Message + 1) and (channel == "All" or (channel == "Team" and Players[packet.FromSpeaker].Team == player.Team)) then
-                                hidden = false
-                            end
-                        end)
-                        wait(1)
-                        conn:Disconnect()
-                        if hidden and Config.enabled then
-                            local formattedMessage = "[" .. p.Name .. "] : " .. msg
-                            saymsg:FireServer(formattedMessage, "All")
-                        end
-                    end
-                end)
-            end
-
-            Players.PlayerAdded:Connect(function(p)
-                p.Chatted:Connect(function(msg)
-                    if Config.enabled and (Config.spyOnMyself or p ~= player) then
-                        msg = msg:gsub("[\n\r]", ''):gsub("\t", ' '):gsub("[ ]+", ' ')
-                        local hidden = true
-                        local conn = getmsg.OnClientEvent:Connect(function(packet, channel)
-                            if packet.SpeakerUserId == p.UserId and packet.Message == msg:sub(#msg - #packet.Message + 1) and (channel == "All" or (channel == "Team" and Players[packet.FromSpeaker].Team == player.Team)) then
-                                hidden = false
-                            end
-                        end)
-                        wait(1)
-                        conn:Disconnect()
-                        if hidden and Config.enabled then
-                            local formattedMessage = "[" .. p.Name .. "] : " .. msg
-                            saymsg:FireServer(formattedMessage, "All")
-                        end
-                    end
-                end)
-            end)
-        end
-    end
+end
 })
 
 local GrabEvents = ReplicatedStorage:WaitForChild("GrabEvents")
@@ -2344,12 +2268,68 @@ local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
 local SetNetworkOwner = GrabEvents:WaitForChild("SetNetworkOwner")
 local localPlayer = Players.LocalPlayer
 local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-
 localPlayer.CharacterAdded:Connect(function(character)
     playerCharacter = character
 end)
+local toysFolder = workspace:FindFirstChild(localPlayer.Name.."SpawnedInToys")
 
-local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
+local function spawnItemCf(itemName, cframe)
+    task.spawn(function()
+        local rotation = Vector3.new(0, 0, 0)
+        ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
+    end)
+end
+
+local function DestroyT(toy)
+    local toy = toy or toysFolder:FindFirstChildWhichIsA("Model")
+    MenuToys.DestroyToy:FireServer(toy)
+end
+
+local function fireAll()
+    while true do
+        local success, err = pcall(function()
+            if toysFolder:FindFirstChild("Campfire") then
+                DestroyT(toysFolder:FindFirstChild("Campfire"))
+                wait(0.5)
+            end
+            spawnItemCf("Campfire", playerCharacter.Head.CFrame)
+            local campfire = toysFolder:WaitForChild("Campfire")
+            local firePlayerPart
+            for _, part in pairs(campfire:GetChildren()) do
+                if part.Name == "FirePlayerPart" then
+                    part.Size = Vector3.new(10, 10, 10)
+                    firePlayerPart = part
+                    break
+                end
+            end
+            local originalPosition = playerCharacter.Torso.Position
+            SetNetworkOwner:FireServer(firePlayerPart, firePlayerPart.CFrame)
+            playerCharacter:MoveTo(firePlayerPart.Position)
+            wait(0.3)
+            playerCharacter:MoveTo(originalPosition)
+            local bodyPosition = Instance.new("BodyPosition")
+            bodyPosition.P = 20000
+            bodyPosition.Position = playerCharacter.Head.Position + Vector3.new(0, 600, 0)
+            bodyPosition.Parent = campfire.Main
+            while true do
+                for _, player in pairs(Players:GetChildren()) do
+                    pcall(function()
+                        bodyPosition.Position = playerCharacter.Head.Position + Vector3.new(0, 600, 0)
+                        if player.Character and player.Character.HumanoidRootPart and player.Character ~= playerCharacter then
+                            firePlayerPart.Position = player.Character.HumanoidRootPart.Position or player.Character.Head.Position
+                            wait()
+                        end
+                    end)
+                end  
+                wait()
+            end
+        end)
+        if not success then
+            warn("Error in fireAll: " .. tostring(err))
+        end
+        wait()
+    end
+end
 
 miscTab:AddToggle({
     Name = "全員燃やす",
@@ -2358,71 +2338,7 @@ miscTab:AddToggle({
     Save = true,
     Callback = function(enabled)
         if enabled then
-            fireAllCoroutine = coroutine.create(function()
-                while true do
-                    local success, err = pcall(function()
-                        -- キャンプファイア削除
-                        if toysFolder:FindFirstChild("Campfire") then
-                            local campfire = toysFolder:FindFirstChild("Campfire")
-                            MenuToys.DestroyToy:FireServer(campfire)
-                            wait(0.5)
-                        end
-
-                        -- キャンプファイア生成
-                        local rotation = Vector3.new(0, 0, 0)
-                        ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(
-                            "Campfire",
-                            playerCharacter.Head.CFrame,
-                            rotation
-                        )
-
-                        local campfire = toysFolder:WaitForChild("Campfire")
-                        local firePlayerPart
-
-                        -- FirePlayerPart設定
-                        for _, part in pairs(campfire:GetChildren()) do
-                            if part.Name == "FirePlayerPart" then
-                                part.Size = Vector3.new(10, 10, 10)
-                                firePlayerPart = part
-                                break
-                            end
-                        end
-
-                        -- キャンプファイア位置調整
-                        local originalPosition = playerCharacter.Torso.Position
-                        SetNetworkOwner:FireServer(firePlayerPart, firePlayerPart.CFrame)
-                        playerCharacter:MoveTo(firePlayerPart.Position)
-                        wait(0.3)
-                        playerCharacter:MoveTo(originalPosition)
-
-                        -- BodyPosition作成
-                        local bodyPosition = Instance.new("BodyPosition")
-                        bodyPosition.P = 20000
-                        bodyPosition.Position = playerCharacter.Head.Position + Vector3.new(0, 600, 0)
-                        bodyPosition.Parent = campfire.Main
-
-                        -- 他プレイヤーを燃やす
-                        while true do
-                            for _, player in pairs(Players:GetChildren()) do
-                                pcall(function()
-                                    bodyPosition.Position = playerCharacter.Head.Position + Vector3.new(0, 600, 0)
-                                    if player.Character and player.Character.HumanoidRootPart and player.Character ~= playerCharacter then
-                                        firePlayerPart.Position = player.Character.HumanoidRootPart.Position
-                                        wait()
-                                    end
-                                end)
-                            end
-                            wait()
-                        end
-                    end)
-
-                    if not success then
-                        warn("Error in fireAll: " .. tostring(err))
-                    end
-                    wait()
-                end
-            end)
-
+            fireAllCoroutine = coroutine.create(fireAll)
             coroutine.resume(fireAllCoroutine)
         else
             if fireAllCoroutine then
@@ -2438,8 +2354,46 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local localPlayer = Players.LocalPlayer
 local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
 
-local ragdollAllCoroutine
+local function spawnItem(itemName, position)
+local cframe = CFrame.new(position)
+local rotation = Vector3.new(0, 90, 0)
+    ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
+end
 
+local function ragdollAll()
+    while true do
+        local success, err = pcall(function()
+            if not toysFolder:FindFirstChild("FoodBanana") then
+                spawnItem("FoodBanana", Vector3.new(-72.9304581, -5.96906614, -265.543732))
+            end
+            local banana = toysFolder:WaitForChild("FoodBanana", 5)
+            local bananaPeel
+             for _, part in pairs(banana:GetChildren()) do
+                if part.Name == "BananaPeel" and part:FindFirstChild("TouchInterest") then
+                    part.Size = Vector3.new(10, 10, 10)
+                    part.Transparency = 1
+                    bananaPeel = part
+                    break
+                end
+            end
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local humanoidRootPart = player.Character.HumanoidRootPart
+                    pcall(function()
+                        bananaPeel.Position = humanoidRootPart.Position
+                        wait()
+                    end)
+                end
+            end
+        end)
+        if not success then
+            warn("Error in ragdollAll: " .. tostring(err))
+        end
+        wait(0.02)
+    end
+end
+
+local ragdollAllCoroutine
 miscTab:AddToggle({
     Name = "ラグドールオール",
     Color = Color3.fromRGB(0, 255, 255),
@@ -2448,45 +2402,7 @@ miscTab:AddToggle({
     Callback = function(enabled)
         if enabled then
             print("Ragdoll All 開始")
-            ragdollAllCoroutine = coroutine.create(function()
-                while true do
-                    local success, err = pcall(function()
-                        if not toysFolder:FindFirstChild("FoodBanana") then
-                            local cframe = CFrame.new(Vector3.new(-72.9304581, -5.96906614, -265.543732))
-                            local rotation = Vector3.new(0, 90, 0)
-                            ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer("FoodBanana", cframe, rotation)
-                        end
-
-                        local banana = toysFolder:WaitForChild("FoodBanana", 5)
-                        local bananaPeel
-                        for _, part in pairs(banana:GetChildren()) do
-                            if part.Name == "BananaPeel" and part:FindFirstChild("TouchInterest") then
-                                part.Size = Vector3.new(10, 10, 10)
-                                part.Transparency = 1
-                                bananaPeel = part
-                                break
-                            end
-                        end
-
-                        for _, player in pairs(Players:GetPlayers()) do
-                            if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                                local humanoidRootPart = player.Character.HumanoidRootPart
-                                pcall(function()
-                                    bananaPeel.Position = humanoidRootPart.Position
-                                    wait()
-                                end)
-                            end
-                        end
-                    end)
-
-                    if not success then
-                        warn("Error in Ragdoll All: " .. tostring(err))
-                    end
-
-                    wait(0.02)
-                end
-            end)
-
+            ragdollAllCoroutine = coroutine.create(ragdollAll)
             coroutine.resume(ragdollAllCoroutine)
         else
             if ragdollAllCoroutine then
