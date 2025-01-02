@@ -578,9 +578,6 @@ local config = {
     AutoBlobmanEnabled = false
 }
 
-local localPlayer = game.Players.LocalPlayer
-local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-
 localPlayer.CharacterAdded:Connect(function(character)
     playerCharacter = character
 end)
@@ -1335,6 +1332,139 @@ playerTab:AddToggle({
                 animation = nil
             end
         end
+    end
+})
+local config = {
+    ToyToLoad = "BallSnowball",
+    MaxBallSnowball = 1,
+    AutoBallSnowballEnabled = false,
+    TargetPlayerName = ""
+}
+localPlayer.CharacterAdded:Connect(function(character)
+    playerCharacter = character
+end)
+
+local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
+
+local function spawnItemCf(itemName, cframe)
+    task.spawn(function()
+        local rotation = Vector3.new(0, 0, 0)
+        local success, err = pcall(function()
+            game:GetService("ReplicatedStorage").MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
+        end)
+        if success then
+            print("[INFO] アイテム " .. itemName .. " のスポーンリクエスト成功")
+        else
+            warn("[ERROR] アイテム " .. itemName .. " のスポーンリクエスト失敗: " .. tostring(err))
+        end
+    end)
+end
+
+local function findOwnedBallSnowball()
+    if not toysFolder then
+        toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
+    end
+
+    if toysFolder then
+        for _, v in pairs(toysFolder:GetChildren()) do
+            if v.Name == "BallSnowball" then
+                return v
+            end
+        end
+    end
+
+    return nil
+end
+
+local function teleportItemToPlayer(item, targetPlayer)
+    if item and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetCFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+        item:SetPrimaryPartCFrame(targetCFrame)
+        print("[INFO] " .. item.Name .. " を " .. targetPlayer.DisplayName .. " にテレポートしました")
+    else
+        print("[WARN] ターゲットプレイヤーまたはアイテムが無効です")
+    end
+end
+
+local function autoBallSnowball()
+    local checkInterval = 0
+    while config.AutoBallSnowballEnabled do
+        pcall(function()
+            local ballSnowball = findOwnedBallSnowball()
+
+            if not ballSnowball then
+                if localPlayer.CanSpawnToy and localPlayer.CanSpawnToy.Value and playerCharacter:FindFirstChild("Head") then
+                    print("[INFO] BallSnowballをスポーン中...")
+                    spawnItemCf(config.ToyToLoad, playerCharacter.Head.CFrame or playerCharacter.HumanoidRootPart.CFrame)
+                end
+            else
+                local targetPlayer = game.Players:FindFirstChild(config.TargetPlayerName)
+                if targetPlayer then
+                    teleportItemToPlayer(ballSnowball, targetPlayer)
+                end
+            end
+        end)
+        wait(checkInterval)
+    end
+end
+
+local function toggleAutoBallSnowball(enabled)
+    config.AutoBallSnowballEnabled = enabled
+    if enabled then
+        print("[INFO] 自動BallSnowball機能を有効化しました")
+        task.spawn(autoBallSnowball)
+    else
+        print("[INFO] 自動BallSnowball機能を無効化しました")
+    end
+end
+
+local function getPlayerList()
+    local playerList = {}
+    for _, player in pairs(game.Players:GetPlayers()) do
+        table.insert(playerList, player.Name .. " (" .. player.DisplayName .. ")")
+    end
+    return playerList
+end
+
+local function updateTargetPlayer(selected)
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if selected == player.Name .. " (" .. player.DisplayName .. ")" then
+            config.TargetPlayerName = player.Name
+            print("[INFO] ターゲットプレイヤーが " .. player.DisplayName .. " に設定されました")
+            break
+        end
+    end
+end
+
+local MainTab = Window:MakeTab({
+    Name = "爆発系",
+    Icon = "",
+    PremiumOnly = false
+})
+
+MainTab:AddDropdown({
+    Name = "ターゲット",
+    Default = "",
+    Options = getPlayerList(),
+    Callback = function(selected)
+        updateTargetPlayer(selected)
+    end,
+    AllowCustom = false
+})
+
+task.spawn(function()
+    while true do
+        task.wait(3)
+        local dropdown = MainTab:GetElement("ターゲットプレイヤー選択")
+        dropdown:SetOptions(getPlayerList())
+    end
+end)
+
+MainTab:AddToggle({
+    Name = "自動無敵突破",
+    Default = false,
+    Callback = function(enabled)
+        toggleAutoBallSnowball(enabled)
     end
 })
 
