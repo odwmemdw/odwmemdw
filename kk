@@ -778,7 +778,7 @@ BlobmanTab:AddButton({
                 blobman.PrimaryPart = blobman:FindFirstChild("HumanoidRootPart") or blobman:FindFirstChild("MainPart") or blobman:FindFirstChildWhichIsA("BasePart")
             end
             if blobman.PrimaryPart then
-                local newPosition = Vector3.new(9, 89000000, -9)
+                local newPosition = Vector3.new(9,70000000, -9)
                 blobman:SetPrimaryPartCFrame(CFrame.new(newPosition))
                 print("Blobmanを新しい位置にテレポートしました")
             else
