@@ -652,7 +652,7 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
-local ascendSpeed = 500
+local ascendSpeed = 1000
 local ascending = false
 
 local function findBlobman()
@@ -677,11 +677,12 @@ local function ascendBlobman()
         end
         
         if blobman.PrimaryPart then
+            blobman.PrimaryPart.Anchored = true
             ascending = true
-            RunService.Heartbeat:Connect(function()
+            RunService.Heartbeat:Connect(function(deltaTime)
                 if ascending then
                     local currentPos = blobman.PrimaryPart.Position
-                    blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * RunService.Heartbeat:Wait(), 0)))
+                    blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * deltaTime, 0)))
                 end
             end)
         else
