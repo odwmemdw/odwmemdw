@@ -652,7 +652,7 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
-local ascendSpeed = 250
+local ascendSpeed = 500
 local ascending = false
 
 local function findBlobman()
