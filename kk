@@ -769,26 +769,6 @@ BlobmanTab:AddToggle({
 
 
 
-BlobmanTab:AddButton({
-	Name = "空",
-	Callback = function()
-   local blobman = findBlobman()
-        if blobman then
-            if not blobman.PrimaryPart then
-                blobman.PrimaryPart = blobman:FindFirstChild("HumanoidRootPart") or blobman:FindFirstChild("MainPart") or blobman:FindFirstChildWhichIsA("BasePart")
-            end
-            if blobman.PrimaryPart then
-                local newPosition = Vector3.new(999,60000000,99）
-                blobman:SetPrimaryPartCFrame(CFrame.new(newPosition))
-                print("Blobmanを新しい位置にテレポートしました")
-            else
-                warn("BlobmanにPrimaryPartが設定されていません")
-            end
-        else
-            warn("Blobmanに座っていません！")
-        end
-    end
-})
 
 local antiTab = Window:MakeTab({
     Name = "アンチ",
