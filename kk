@@ -652,18 +652,46 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
-
+local ascendSpeed = 150
+local ascending = false
 
 local function findBlobman()
     for _, v in pairs(workspace:GetDescendants()) do
         if v.Name == "CreatureBlobman" then
-            if v:FindFirstChild("VehicleSeat") and v.VehicleSeat:FindFirstChild("SeatWeld") and v.VehicleSeat.SeatWeld.Part1:IsDescendantOf(game.Players.LocalPlayer.Character) then
-                return v 
+            if v:FindFirstChild("VehicleSeat") and v.VehicleSeat:FindFirstChild("SeatWeld") 
+               and v.VehicleSeat.SeatWeld.Part1:IsDescendantOf(game.Players.LocalPlayer.Character) then
+                return v
             end
         end
     end
-    return nil 
+    return nil
 end
+
+local function ascendBlobman()
+    local blobman = findBlobman()
+    if blobman then
+        if not blobman.PrimaryPart then
+            blobman.PrimaryPart = blobman:FindFirstChild("HumanoidRootPart") 
+                                  or blobman:FindFirstChild("MainPart") 
+                                  or blobman:FindFirstChildWhichIsA("BasePart")
+        end
+        
+        if blobman.PrimaryPart then
+            ascending = true
+            RunService.Heartbeat:Connect(function()
+                if ascending then
+                    local currentPos = blobman.PrimaryPart.Position
+                    blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * RunService.Heartbeat:Wait(), 0)))
+                end
+            end)
+        else
+            warn("BlobmanにPrimaryPartが設定されていません！")
+        end
+    else
+        warn("Blobmanに座っていません！")
+    end
+end
+
 
 local Section = BlobmanTab:AddSection({
 	Name = "オール"
@@ -764,6 +792,17 @@ BlobmanTab:AddToggle({
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
+    end
+})
+
+BlobmanTab:AddButton({
+    Name = "上昇",
+    Callback = function()
+        if not ascending then
+            ascendBlobman()
+        else
+            warn("既に上昇中です！")
+        end
     end
 })
 
