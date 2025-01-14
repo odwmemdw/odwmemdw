@@ -1085,7 +1085,7 @@ antiTab:AddToggle({
 })
 local enabled = false
 local connections = {}
-local range = 1000000
+local range = 10000
 
 local function disablePart(part)
     if part:IsA("BasePart") then
