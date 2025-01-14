@@ -2324,8 +2324,8 @@ local miscTab = Window:MakeTab({
       PremiumOnly = false
 })
 
-local hitboxSize = 5
-local transparencyValue = 1
+local hitboxSize = 10
+local transparencyValue = 0
 local featureEnabled = false
 local hitboxColor = Color3.fromRGB(255, 255, 255)
 
