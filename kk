@@ -652,8 +652,10 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
+local RunService = game:GetService("RunService")
 local ascendSpeed = 1000
 local ascending = false
+local heartbeatConnection
 
 local function findBlobman()
     for _, v in pairs(workspace:GetDescendants()) do
@@ -679,10 +681,24 @@ local function ascendBlobman()
         if blobman.PrimaryPart then
             blobman.PrimaryPart.Anchored = true
             ascending = true
-            RunService.Heartbeat:Connect(function(deltaTime)
+
+            -- 既存のコネクションがある場合は停止
+            if heartbeatConnection then
+                heartbeatConnection:Disconnect()
+                heartbeatConnection = nil
+            end
+
+            -- 上昇処理を開始
+            heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
                 if ascending then
                     local currentPos = blobman.PrimaryPart.Position
                     blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * deltaTime, 0)))
+                else
+                    -- 上昇が停止した場合コネクションを切断
+                    if heartbeatConnection then
+                        heartbeatConnection:Disconnect()
+                        heartbeatConnection = nil
+                    end
                 end
             end)
         else
@@ -802,10 +818,12 @@ BlobmanTab:AddButton({
         if not ascending then
             ascendBlobman()
         else
-            warn("既に上昇中です！")
+            ascending = false
+            warn("上昇を停止しました。")
         end
     end
 })
+
 
 
 
