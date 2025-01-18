@@ -1982,6 +1982,30 @@ AuraTab:AddToggle({
     end
 })
 
+local FriendsOnly = false
+
+AuraTab:AddToggle({
+    Name = "フレンドを除外",
+    Default = false,
+    Color = Color3.fromRGB(0, 200, 200),
+    Callback = function(value)
+        FriendsOnly = value
+        print("フレンドを除外: " .. tostring(FriendsOnly))
+    end
+})
+
+-- フレンドかどうかを判定する関数
+local function isFriend(player)
+    return localPlayer:IsFriendsWith(player.UserId)
+end
+
+local function isValidTarget(player)
+    if player == localPlayer then return false end
+    if FriendsOnly and isFriend(player) then return false end
+    return true
+end
+
+
 local LagTab = Window:MakeTab({
     Name = "ラグ",
     Icon = "",
