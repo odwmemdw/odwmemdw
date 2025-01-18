@@ -332,7 +332,7 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddToggle({
-    Name = "Poison Grab",
+    Name = "毒掴み",
     Default = false,
     Save = true,
     Flag = "PoisonGrab",
