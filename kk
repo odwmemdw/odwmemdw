@@ -1985,7 +1985,7 @@ AuraTab:AddToggle({
 })
 
 AuraTab:AddToggle({
-    Name = "ホワイトリストフレンド",
+    Name = "フレンドを除外",
     Default = false,
     Color = Color3.fromRGB(0, 200, 200),
     Callback = function(value)
@@ -1995,15 +1995,40 @@ AuraTab:AddToggle({
 })
 
 local function isFriend(player)
-    return localPlayer:IsFriendsWith(player.UserId)
+    local success, result = pcall(function()
+        return localPlayer:IsFriendsWith(player.UserId)
+    end)
+    return success and result or false
 end
 
 local function isValidTarget(player)
-    if player == localPlayer then return false end
-    if FriendsOnly and isFriend(player) then return false end
+    if not player or not player:IsA("Player") then return false end -- 無効なプレイヤーを除外
+    if player == localPlayer then return false end -- 自分自身を除外
+    if FriendsOnly and isFriend(player) then return false end -- フレンドを除外
+    local character = player.Character
+    if not character or not character:IsDescendantOf(workspace) then return false end
     return true
 end
 
+local function getDescendantParts(descendantName)
+    local parts = {}
+    for _, descendant in ipairs(workspace.Map:GetDescendants()) do
+        if descendant:IsA("Part") and descendant.Name == descendantName then
+        
+            local parent = descendant.Parent
+            if parent and parent:IsA("Model") and parent:FindFirstChild("Humanoid") then
+                local player = game.Players:GetPlayerFromCharacter(parent)
+                if not player or isValidTarget(player) then
+                    table.insert(parts, descendant)
+                end
+            else
+                -- フレンドが関係しないパーツはそのまま追加
+                table.insert(parts, descendant)
+            end
+        end
+    end
+    return parts
+end
 
 local LagTab = Window:MakeTab({
     Name = "ラグ",
