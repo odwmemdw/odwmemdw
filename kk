@@ -332,15 +332,21 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddToggle({
-    Name = "毒掴み",
+    Name = "Poison Grab",
     Default = false,
     Save = true,
-    Color = Color3.fromRGB(240, 0, 0),
     Flag = "PoisonGrab",
     Callback = function(enabled)
         if enabled then
-            poisonGrabCoroutine = coroutine.create(function()
-                while true do
+            coroutine.wrap(function()
+                local poisonHurtParts = {}
+                for _, part in pairs(workspace:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name == "PoisonHurtPart" then
+                        table.insert(poisonHurtParts, part)
+                    end
+                end
+                
+                while enabled do
                     local success, err = pcall(function()
                         local child = workspace:FindFirstChild("GrabParts")
                         if child and child.Name == "GrabParts" then
@@ -360,25 +366,20 @@ GrabTab:AddToggle({
                             end
                         end
                     end)
-
                     if not success then
                         warn("Error in Poison Grab: " .. tostring(err))
                     end
                     wait()
                 end
-            end)
-            coroutine.resume(poisonGrabCoroutine)
-        else
-            if poisonGrabCoroutine then
-                coroutine.close(poisonGrabCoroutine)
-                poisonGrabCoroutine = nil
+
                 for _, part in pairs(poisonHurtParts) do
                     part.Position = Vector3.new(0, -200, 0)
                 end
-            end
+            end)()
         end
     end
 })
+
 
 GrabTab:AddToggle({
     Name = "キル掴み",
@@ -731,19 +732,16 @@ local function ascendBlobman()
             blobman.PrimaryPart.Anchored = true
             ascending = true
 
-            -- 既存のコネクションがある場合は停止
             if heartbeatConnection then
                 heartbeatConnection:Disconnect()
                 heartbeatConnection = nil
             end
 
-            -- 上昇処理を開始
             heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
                 if ascending then
                     local currentPos = blobman.PrimaryPart.Position
                     blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * deltaTime, 0)))
                 else
-                    -- 上昇が停止した場合コネクションを切断
                     if heartbeatConnection then
                         heartbeatConnection:Disconnect()
                         heartbeatConnection = nil
