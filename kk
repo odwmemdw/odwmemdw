@@ -1075,132 +1075,71 @@ antiTab:AddToggle({
         end
     end
 })
-local fpsdiv = 5
-local destroyheight = workspace.FallenPartsDestroyHeight
-workspace.FallenPartsDestroyHeight = -50000
-local dhoffset = 5
-local dhto = 25
-local destroyheightnew = destroyheight + dhoffset
-local localplr = game.Players.LocalPlayer
-local connectsextra = {}
-local charcframe = nil
-local stepped
-local stopped = true
-
-antiTab:AddToggle({
-    Name = "アンチボイド",
-    Default = false,
-    Callback = function(value)
-        stopped = not value
-        if value then
-            stepped = game:GetService("RunService").Stepped:Connect(function()
-                local character = localplr.Character
-                if character and character:FindFirstChildWhichIsA("BasePart") then
-                    local part = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
-                    local cfr = (character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.CFrame) or character:GetPivot()
-                    charcframe = cfr
-                    
-                    if cfr.Position.Y < destroyheightnew then
-                        local piv = character:GetPivot()
-                        character:PivotTo(CFrame.new(piv.Position.X, destroyheight + dhto + character:GetExtentsSize().Y, piv.Position.Z))
-                    end
-                    
-                    if part then
-                        part.Velocity = Vector3.new(0, 0, 0)
-                        for _, v in pairs(character:GetChildren()) do
-                            if v:IsA("BasePart") then
-                                v.Velocity = Vector3.new(0, 0, 0)
-                            end
-                        end
-                    end
-                end
-            end)
-            print("Anti-Void Enabled!")
-        else
-            if stepped then
-                stepped:Disconnect()
-                stepped = nil
-            end
-            for _, v in pairs(connectsextra) do
-                v:Disconnect()
-            end
-            print("Anti-Void Disabled!")
-        end
-    end
-})
 
 local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
 localPlayer.CharacterAdded:Connect(function(character)
     playerCharacter = character
 end)
+
 local currentKunai = nil
 local kunaiSpawningEnabled = false
-local function spawnItemCf(itemName, cframe)
-    local rotation = Vector3.new(90, 0, 0)
-    local toy = ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(itemName, cframe, rotation)
-    return toy
-end
-local function attachKunaiToThigh()
-    if currentKunai and currentKunai.Parent then 
-        print("Kunai already exists. Skipping spawn.")
-        return 
-    end
-    local torso = playerCharacter:WaitForChild("Torso", 5)
-    if torso then
-        local kunaiPosition = torso.CFrame
-            * CFrame.new(-0.5, -torso.Size.Y / 2, 0)
-            * CFrame.Angles(math.rad(-100), 0, 0)
-        spawnItemCf("NinjaKunai", kunaiPosition)
-        for i = 1, 20 do
-            local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
-            if toysFolder then
-                currentKunai = toysFolder:FindFirstChild("NinjaKunai")
-                if currentKunai then
-                    break
-                end
-            end
-            task.wait()
-        end
-        if currentKunai then
-            currentKunai.AncestryChanged:Connect(function(_, parent)
-                if not parent then
-                    print("Kunai has been removed. Respawning...")
-                    currentKunai = nil
-                    attachKunaiToThigh()
-                end
-            end)
-            print("Kunai has been spawned near the thigh.")
-        else
-            warn("Kunai could not be spawned. Retrying...")
-        end
-    else
-        warn("Torso not found!")
-    end
-end
-local function monitorKunai()
-    while kunaiSpawningEnabled do
-        if not (currentKunai and currentKunai.Parent) then
-            print("Kunai missing, respawning...")
-            currentKunai = nil
-            attachKunaiToThigh()
-        end
-        task.wait()
-    end
-end
+
 antiTab:AddToggle({
     Name = "アンチキック",
     Default = false,
     Callback = function(value)
         kunaiSpawningEnabled = value
         if value then
-            attachKunaiToThigh()
-            task.spawn(monitorKunai)
+            print("アンチキックを有効化しました。")
+            task.spawn(function()
+                while kunaiSpawningEnabled do
+                    if not (currentKunai and currentKunai.Parent) then
+                        print("Kunaiが見つからないため再生成を試みます...")
+
+                        local torso = playerCharacter:WaitForChild("Torso", 5)
+                        if torso then
+                            local kunaiPosition = torso.CFrame
+                                * CFrame.new(-0.5, -torso.Size.Y / 2, 0)
+                                * CFrame.Angles(math.rad(-100), 0, 0)
+                            
+                            local rotation = Vector3.new(90, 0, 0)
+                            local toy = ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer("NinjaKunai", kunaiPosition, rotation)
+                            
+                            for i = 1, 20 do
+                                local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
+                                if toysFolder then
+                                    currentKunai = toysFolder:FindFirstChild("NinjaKunai")
+                                    if currentKunai then
+                                        print("Kunaiを生成しました。")
+                                        currentKunai.AncestryChanged:Connect(function(_, parent)
+                                            if not parent then
+                                                print("Kunaiが削除されました。再生成します...")
+                                                currentKunai = nil
+                                            end
+                                        end)
+                                        break
+                                    end
+                                end
+                                task.wait()
+                            end
+
+                            if not currentKunai then
+                                warn("Kunaiの生成に失敗しました。リトライします...")
+                            end
+                        else
+                            warn("Torsoが見つかりません！")
+                        end
+                    end
+                    task.wait()
+                end
+            end)
         else
-            kunaiSpawningEnabled = false
-            print("Kunai monitoring stopped.")
+            print("アンチキックを無効化しました。")
+            currentKunai = nil
         end
     end
 })
+
 
 local destroyheight = workspace.FallenPartsDestroyHeight
 workspace.FallenPartsDestroyHeight = -10000000000
