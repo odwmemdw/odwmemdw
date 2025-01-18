@@ -1075,6 +1075,59 @@ antiTab:AddToggle({
         end
     end
 })
+local fpsdiv = 5
+local destroyheight = workspace.FallenPartsDestroyHeight
+workspace.FallenPartsDestroyHeight = -50000
+local dhoffset = 5
+local dhto = 25
+local destroyheightnew = destroyheight + dhoffset
+local localplr = game.Players.LocalPlayer
+local connectsextra = {}
+local charcframe = nil
+local stepped
+local stopped = true
+
+antiTab:AddToggle({
+    Name = "アンチボイド",
+    Default = false,
+    Callback = function(value)
+        stopped = not value
+        if value then
+            stepped = game:GetService("RunService").Stepped:Connect(function()
+                local character = localplr.Character
+                if character and character:FindFirstChildWhichIsA("BasePart") then
+                    local part = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
+                    local cfr = (character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.CFrame) or character:GetPivot()
+                    charcframe = cfr
+                    
+                    if cfr.Position.Y < destroyheightnew then
+                        local piv = character:GetPivot()
+                        character:PivotTo(CFrame.new(piv.Position.X, destroyheight + dhto + character:GetExtentsSize().Y, piv.Position.Z))
+                    end
+                    
+                    if part then
+                        part.Velocity = Vector3.new(0, 0, 0)
+                        for _, v in pairs(character:GetChildren()) do
+                            if v:IsA("BasePart") then
+                                v.Velocity = Vector3.new(0, 0, 0)
+                            end
+                        end
+                    end
+                end
+            end)
+            print("Anti-Void Enabled!")
+        else
+            if stepped then
+                stepped:Disconnect()
+                stepped = nil
+            end
+            for _, v in pairs(connectsextra) do
+                v:Disconnect()
+            end
+            print("Anti-Void Disabled!")
+        end
+    end
+})
 
 local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
 localPlayer.CharacterAdded:Connect(function(character)
@@ -1150,11 +1203,11 @@ antiTab:AddToggle({
 })
 
 local destroyheight = workspace.FallenPartsDestroyHeight
-workspace.FallenPartsDestroyHeight = -50000
+workspace.FallenPartsDestroyHeight = -10000000000
 local localplr = game.Players.LocalPlayer
 local connectsextra = {}
 local stepped
-local stopped = true -- トグルの状態を追跡
+local stopped = tru
 
 antiTab:AddToggle({
     Name = "ボイドプロテクション（奈落）",
@@ -1185,7 +1238,6 @@ antiTab:AddToggle({
     end
 })
 
--- スクリプト終了時のクリーンアップ
 getgenv().deletescript123456lol69 = function()
     workspace.FallenPartsDestroyHeight = destroyheight
     if stepped then
