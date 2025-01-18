@@ -1149,6 +1149,54 @@ antiTab:AddToggle({
     end
 })
 
+local destroyheight = workspace.FallenPartsDestroyHeight
+workspace.FallenPartsDestroyHeight = -50000
+local localplr = game.Players.LocalPlayer
+local connectsextra = {}
+local stepped
+local stopped = true -- トグルの状態を追跡
+
+antiTab:AddToggle({
+    Name = "ボイドプロテクション（奈落）",
+    Default = false,
+    Callback = function(value)
+        stopped = not value
+
+        if value then
+            stepped = game:GetService("RunService").Stepped:Connect(function()
+                if localplr.Character ~= nil and localplr.Character:FindFirstChildWhichIsA("BasePart") then
+                    local part = localplr.Character:FindFirstChild("HumanoidRootPart") or localplr.Character:FindFirstChildWhichIsA("BasePart")
+                    if part and part.Position.Y < workspace.FallenPartsDestroyHeight then
+                        part.Velocity = Vector3.new(0, -50, 0)
+                    end
+                end
+            end)
+            print("Anti-Void Enabled!")
+        else
+            if stepped then
+                stepped:Disconnect()
+                stepped = nil
+            end
+            for i, v in pairs(connectsextra) do
+                v:Disconnect()
+            end
+            print("Anti-Void Disabled!")
+        end
+    end
+})
+
+-- スクリプト終了時のクリーンアップ
+getgenv().deletescript123456lol69 = function()
+    workspace.FallenPartsDestroyHeight = destroyheight
+    if stepped then
+        stepped:Disconnect()
+    end
+    for i, v in pairs(connectsextra) do
+        v:Disconnect()
+    end
+    stopped = true
+end
+
 local ToggleActive = false
 local playerTab = Window:MakeTab({
     	Name = "プレイヤー",
