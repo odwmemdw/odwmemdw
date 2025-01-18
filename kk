@@ -1628,6 +1628,8 @@ local parts = {}
     return parts
 end
 
+local FriendsOnly = false
+
 local AuraTab = Window:MakeTab({
     Name = "オーラ",
     PremiumOnly = false
@@ -1982,10 +1984,8 @@ AuraTab:AddToggle({
     end
 })
 
-local FriendsOnly = false
-
 AuraTab:AddToggle({
-    Name = "フレンドを除外",
+    Name = "ホワイトリストフレンド",
     Default = false,
     Color = Color3.fromRGB(0, 200, 200),
     Callback = function(value)
@@ -1994,7 +1994,6 @@ AuraTab:AddToggle({
     end
 })
 
--- フレンドかどうかを判定する関数
 local function isFriend(player)
     return localPlayer:IsFriendsWith(player.UserId)
 end
