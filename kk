@@ -332,6 +332,55 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddToggle({
+    Name = "毒掴み",
+    Default = false,
+    Save = true,
+    Color = Color3.fromRGB(240, 0, 0),
+    Flag = "PoisonGrab",
+    Callback = function(enabled)
+        if enabled then
+            poisonGrabCoroutine = coroutine.create(function()
+                while true do
+                    local success, err = pcall(function()
+                        local child = workspace:FindFirstChild("GrabParts")
+                        if child and child.Name == "GrabParts" then
+                            local grabPart = child:FindFirstChild("GrabPart")
+                            local grabbedPart = grabPart:FindFirstChild("WeldConstraint").Part1
+                            local head = grabbedPart.Parent:FindFirstChild("Head")
+                            if head then
+                                for _, part in pairs(poisonHurtParts) do
+                                    part.Size = Vector3.new(2, 2, 2)
+                                    part.Transparency = 1
+                                    part.Position = head.Position
+                                end
+                                wait()
+                                for _, part in pairs(poisonHurtParts) do
+                                    part.Position = Vector3.new(0, -200, 0)
+                                end
+                            end
+                        end
+                    end)
+
+                    if not success then
+                        warn("Error in Poison Grab: " .. tostring(err))
+                    end
+                    wait()
+                end
+            end)
+            coroutine.resume(poisonGrabCoroutine)
+        else
+            if poisonGrabCoroutine then
+                coroutine.close(poisonGrabCoroutine)
+                poisonGrabCoroutine = nil
+                for _, part in pairs(poisonHurtParts) do
+                    part.Position = Vector3.new(0, -200, 0)
+                end
+            end
+        end
+    end
+})
+
+GrabTab:AddToggle({
     Name = "キル掴み",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
