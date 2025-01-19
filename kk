@@ -1153,13 +1153,11 @@ antiTab:AddToggle({
     end
 })
 
-
-local destroyheight = workspace.FallenPartsDestroyHeight
+local destroyHeight = workspace.FallenPartsDestroyHeight
 workspace.FallenPartsDestroyHeight = -10000000000
 local localplr = game.Players.LocalPlayer
-local connectsextra = {}
-local stepped
-local stopped = tru
+local steppedConnection = nil
+local stopped = true
 
 antiTab:AddToggle({
     Name = "ボイドプロテクション（奈落）",
@@ -1168,22 +1166,26 @@ antiTab:AddToggle({
         stopped = not value
 
         if value then
-            stepped = game:GetService("RunService").Stepped:Connect(function()
-                if localplr.Character ~= nil and localplr.Character:FindFirstChildWhichIsA("BasePart") then
-                    local part = localplr.Character:FindFirstChild("HumanoidRootPart") or localplr.Character:FindFirstChildWhichIsA("BasePart")
-                    if part and part.Position.Y < workspace.FallenPartsDestroyHeight then
-                        part.Velocity = Vector3.new(0, -50, 0)
+            if not steppedConnection then
+                steppedConnection = game:GetService("RunService").Stepped:Connect(function()
+                    if stopped then return end
+
+                    local character = localplr.Character
+                    if character and character:FindFirstChildWhichIsA("BasePart") then
+                        local part = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
+                        if part and part.Position.Y < workspace.FallenPartsDestroyHeight then
+                        
+                            part.Velocity = Vector3.new(0, -50, 0)
+                        end
                     end
-                end
-            end)
-            print("Anti-Void Enabled!")
-        else
-            if stepped then
-                stepped:Disconnect()
-                stepped = nil
+                end)
+                print("Anti-Void Enabled!")
             end
-            for i, v in pairs(connectsextra) do
-                v:Disconnect()
+        else
+        
+            if steppedConnection then
+                steppedConnection:Disconnect()
+                steppedConnection = nil
             end
             print("Anti-Void Disabled!")
         end
@@ -1191,15 +1193,14 @@ antiTab:AddToggle({
 })
 
 getgenv().deletescript123456lol69 = function()
-    workspace.FallenPartsDestroyHeight = destroyheight
-    if stepped then
-        stepped:Disconnect()
-    end
-    for i, v in pairs(connectsextra) do
-        v:Disconnect()
+    workspace.FallenPartsDestroyHeight = destroyHeight
+    if steppedConnection then
+        steppedConnection:Disconnect()
+        steppedConnection = nil
     end
     stopped = true
 end
+
 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
