@@ -1,7 +1,3 @@
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
---Credit: StepBroFurious
 local X;
 X = hookmetamethod(game, "__namecall", function(self, ...)
    if getnamecallmethod() == "Ban" then
