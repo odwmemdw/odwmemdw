@@ -331,8 +331,6 @@ GrabTab:AddToggle({
     end
 })
 
-local poisonGrabCoroutine
-
 GrabTab:AddToggle({
     Name = "毒掴み",
     Default = false,
@@ -340,8 +338,7 @@ GrabTab:AddToggle({
     Flag = "PoisonGrab",
     Callback = function(enabled)
         if enabled then
-        
-            poisonGrabCoroutine = coroutine.create(function()
+            coroutine.wrap(function()
                 local poisonHurtParts = {}
                 for _, part in pairs(workspace:GetDescendants()) do
                     if part:IsA("BasePart") and part.Name == "PoisonHurtPart" then
@@ -349,9 +346,7 @@ GrabTab:AddToggle({
                     end
                 end
                 
-                while true do
-                    if not enabled then break end
-
+                while enabled do
                     local success, err = pcall(function()
                         local child = workspace:FindFirstChild("GrabParts")
                         if child and child.Name == "GrabParts" then
@@ -371,7 +366,6 @@ GrabTab:AddToggle({
                             end
                         end
                     end)
-
                     if not success then
                         warn("Error in Poison Grab: " .. tostring(err))
                     end
@@ -381,18 +375,11 @@ GrabTab:AddToggle({
                 for _, part in pairs(poisonHurtParts) do
                     part.Position = Vector3.new(0, -200, 0)
                 end
-            end)
-
-            coroutine.resume(poisonGrabCoroutine)
-        else
-        
-            if poisonGrabCoroutine then
-                coroutine.close(poisonGrabCoroutine)
-                poisonGrabCoroutine = nil
-            end
+            end)()
         end
     end
 })
+
 
 GrabTab:AddToggle({
     Name = "キル掴み",
@@ -1153,11 +1140,13 @@ antiTab:AddToggle({
     end
 })
 
-local destroyHeight = workspace.FallenPartsDestroyHeight
+
+local destroyheight = workspace.FallenPartsDestroyHeight
 workspace.FallenPartsDestroyHeight = -10000000000
 local localplr = game.Players.LocalPlayer
-local steppedConnection = nil
-local stopped = true
+local connectsextra = {}
+local stepped
+local stopped = tru
 
 antiTab:AddToggle({
     Name = "ボイドプロテクション（奈落）",
@@ -1166,26 +1155,22 @@ antiTab:AddToggle({
         stopped = not value
 
         if value then
-            if not steppedConnection then
-                steppedConnection = game:GetService("RunService").Stepped:Connect(function()
-                    if stopped then return end
-
-                    local character = localplr.Character
-                    if character and character:FindFirstChildWhichIsA("BasePart") then
-                        local part = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChildWhichIsA("BasePart")
-                        if part and part.Position.Y < workspace.FallenPartsDestroyHeight then
-                        
-                            part.Velocity = Vector3.new(0, -50, 0)
-                        end
+            stepped = game:GetService("RunService").Stepped:Connect(function()
+                if localplr.Character ~= nil and localplr.Character:FindFirstChildWhichIsA("BasePart") then
+                    local part = localplr.Character:FindFirstChild("HumanoidRootPart") or localplr.Character:FindFirstChildWhichIsA("BasePart")
+                    if part and part.Position.Y < workspace.FallenPartsDestroyHeight then
+                        part.Velocity = Vector3.new(0, -50, 0)
                     end
-                end)
-                print("Anti-Void Enabled!")
-            end
+                end
+            end)
+            print("Anti-Void Enabled!")
         else
-        
-            if steppedConnection then
-                steppedConnection:Disconnect()
-                steppedConnection = nil
+            if stepped then
+                stepped:Disconnect()
+                stepped = nil
+            end
+            for i, v in pairs(connectsextra) do
+                v:Disconnect()
             end
             print("Anti-Void Disabled!")
         end
@@ -1193,14 +1178,15 @@ antiTab:AddToggle({
 })
 
 getgenv().deletescript123456lol69 = function()
-    workspace.FallenPartsDestroyHeight = destroyHeight
-    if steppedConnection then
-        steppedConnection:Disconnect()
-        steppedConnection = nil
+    workspace.FallenPartsDestroyHeight = destroyheight
+    if stepped then
+        stepped:Disconnect()
+    end
+    for i, v in pairs(connectsextra) do
+        v:Disconnect()
     end
     stopped = true
 end
-
 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
@@ -1642,8 +1628,6 @@ local parts = {}
     return parts
 end
 
-local FriendsOnly = false
-
 local AuraTab = Window:MakeTab({
     Name = "オーラ",
     PremiumOnly = false
@@ -1997,7 +1981,6 @@ AuraTab:AddToggle({
         end
     end
 })
-
 
 local LagTab = Window:MakeTab({
     Name = "ラグ",
