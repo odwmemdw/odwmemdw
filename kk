@@ -331,6 +331,8 @@ GrabTab:AddToggle({
     end
 })
 
+local poisonGrabCoroutine
+
 GrabTab:AddToggle({
     Name = "毒掴み",
     Default = false,
@@ -338,7 +340,8 @@ GrabTab:AddToggle({
     Flag = "PoisonGrab",
     Callback = function(enabled)
         if enabled then
-            coroutine.wrap(function()
+        
+            poisonGrabCoroutine = coroutine.create(function()
                 local poisonHurtParts = {}
                 for _, part in pairs(workspace:GetDescendants()) do
                     if part:IsA("BasePart") and part.Name == "PoisonHurtPart" then
@@ -346,7 +349,9 @@ GrabTab:AddToggle({
                     end
                 end
                 
-                while enabled do
+                while true do
+                    if not enabled then break end
+
                     local success, err = pcall(function()
                         local child = workspace:FindFirstChild("GrabParts")
                         if child and child.Name == "GrabParts" then
@@ -366,6 +371,7 @@ GrabTab:AddToggle({
                             end
                         end
                     end)
+
                     if not success then
                         warn("Error in Poison Grab: " .. tostring(err))
                     end
@@ -375,11 +381,18 @@ GrabTab:AddToggle({
                 for _, part in pairs(poisonHurtParts) do
                     part.Position = Vector3.new(0, -200, 0)
                 end
-            end)()
+            end)
+
+            coroutine.resume(poisonGrabCoroutine)
+        else
+        
+            if poisonGrabCoroutine then
+                coroutine.close(poisonGrabCoroutine)
+                poisonGrabCoroutine = nil
+            end
         end
     end
 })
-
 
 GrabTab:AddToggle({
     Name = "キル掴み",
