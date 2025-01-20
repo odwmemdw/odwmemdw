@@ -65,7 +65,7 @@ local localPlayer = Players.LocalPlayer
 
 local localPlayer = Players.LocalPlayer
 local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-    
+
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
@@ -1077,6 +1077,7 @@ antiTab:AddToggle({
 })
 
 local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
+
 localPlayer.CharacterAdded:Connect(function(character)
     playerCharacter = character
 end)
@@ -1096,12 +1097,13 @@ antiTab:AddToggle({
                     if not (currentKunai and currentKunai.Parent) then
                         print("Kunaiが見つからないため再生成を試みます...")
 
-                        local torso = playerCharacter:WaitForChild("Torso", 5)
-                        if torso then
-                            local kunaiPosition = torso.CFrame
-                                * CFrame.new(-0.5, -torso.Size.Y / 2, 0)
-                                * CFrame.Angles(math.rad(-100), 0, 0)
-                            
+                        local humanoidRootPart = playerCharacter:FindFirstChild("HumanoidRootPart")
+                        local rightLeg = playerCharacter:FindFirstChild("Right Leg") or playerCharacter:FindFirstChild("RightUpperLeg")
+
+                        if humanoidRootPart and rightLeg then
+                            local kunaiOffset = CFrame.new(0, -0.5, 0.5) * CFrame.Angles(math.rad(-90), 0, 0)
+                            local kunaiPosition = rightLeg.CFrame * kunaiOffset
+
                             local rotation = Vector3.new(90, 0, 0)
                             local toy = ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer("NinjaKunai", kunaiPosition, rotation)
                             
@@ -1111,6 +1113,15 @@ antiTab:AddToggle({
                                     currentKunai = toysFolder:FindFirstChild("NinjaKunai")
                                     if currentKunai then
                                         print("Kunaiを生成しました。")
+
+                                        -- クナイをキャラクターの脚に溶接
+                                        local weld = Instance.new("WeldConstraint")
+                                        weld.Part0 = rightLeg
+                                        weld.Part1 = currentKunai
+                                        weld.Parent = currentKunai
+                                        currentKunai.CFrame = rightLeg.CFrame * kunaiOffset
+                                        
+                                        -- クナイが削除されたときの再生成処理
                                         currentKunai.AncestryChanged:Connect(function(_, parent)
                                             if not parent then
                                                 print("Kunaiが削除されました。再生成します...")
@@ -1127,7 +1138,7 @@ antiTab:AddToggle({
                                 warn("Kunaiの生成に失敗しました。リトライします...")
                             end
                         else
-                            warn("Torsoが見つかりません！")
+                            warn("HumanoidRootPartまたはRight Legが見つかりません！")
                         end
                     end
                     task.wait()
@@ -1135,14 +1146,17 @@ antiTab:AddToggle({
             end)
         else
             print("アンチキックを無効化しました。")
-            currentKunai = nil
+            if currentKunai then
+                currentKunai:Destroy()
+                currentKunai = nil
+            end
         end
     end
 })
 
 
 local destroyheight = workspace.FallenPartsDestroyHeight
-workspace.FallenPartsDestroyHeight = -10000000000
+workspace.FallenPartsDestroyHeight = -1000000000000
 local localplr = game.Players.LocalPlayer
 local connectsextra = {}
 local stepped
@@ -2324,6 +2338,7 @@ local miscTab = Window:MakeTab({
       Icon = "",
       PremiumOnly = false
 })
+
 local hitboxSize = 10
 local transparencyValue = 0
 local featureEnabled = false
