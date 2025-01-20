@@ -2324,12 +2324,10 @@ local miscTab = Window:MakeTab({
       Icon = "",
       PremiumOnly = false
 })
-
 local hitboxSize = 10
 local transparencyValue = 0
 local featureEnabled = false
 local hitboxColor = Color3.fromRGB(255, 255, 255)
-local hitboxParts = {} -- 追加: ヒットボックスを追跡するテーブル
 
 miscTab:AddToggle({
     Name = "ヒットボックス",
@@ -2341,33 +2339,20 @@ miscTab:AddToggle({
             if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 local rootPart = player.Character.HumanoidRootPart
                 if featureEnabled then
-                    -- ヒットボックスパーツがなければ新しく作成
-                    if not hitboxParts[player] then
-                        local hitbox = Instance.new("Part")
-                        hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                        hitbox.Transparency = transparencyValue
-                        hitbox.Material = Enum.Material.ForceField
-                        hitbox.Color = hitboxColor
-                        hitbox.CanCollide = false
-                        hitbox.Anchored = false
-                        hitbox.CFrame = rootPart.CFrame
-                        hitbox.Parent = player.Character
-                        hitbox.Name = "HitboxPart"
-                        
-                        -- RootPart にアタッチ
-                        local weld = Instance.new("WeldConstraint")
-                        weld.Part0 = rootPart
-                        weld.Part1 = hitbox
-                        weld.Parent = hitbox
-
-                        hitboxParts[player] = hitbox
-                    end
+                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    rootPart.Transparency = transparencyValue
+                    rootPart.Material = Enum.Material.ForceField
+                    rootPart.Color = hitboxColor
+                    rootPart.CanCollide = false
+                    rootPart.Anchored = false
+                    rootPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
                 else
-                    -- ヒットボックスパーツを削除
-                    if hitboxParts[player] then
-                        hitboxParts[player]:Destroy()
-                        hitboxParts[player] = nil
-                    end
+                    rootPart.Size = Vector3.new(0, 0, 0)
+                    rootPart.Transparency = 0
+                    rootPart.Material = Enum.Material.Plastic
+                    rootPart.Color = Color3.fromRGB(255, 255, 255)
+                    rootPart.CanCollide = true
+                    rootPart.CustomPhysicalProperties = nil
                 end
             end
         end
@@ -2376,26 +2361,13 @@ miscTab:AddToggle({
             player.CharacterAdded:Connect(function()
                 if featureEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     local rootPart = player.Character.HumanoidRootPart
-                    if not hitboxParts[player] then
-                        local hitbox = Instance.new("Part")
-                        hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                        hitbox.Transparency = transparencyValue
-                        hitbox.Material = Enum.Material.ForceField
-                        hitbox.Color = hitboxColor
-                        hitbox.CanCollide = false
-                        hitbox.Anchored = false
-                        hitbox.CFrame = rootPart.CFrame
-                        hitbox.Parent = player.Character
-                        hitbox.Name = "HitboxPart"
-                        
-                        -- Weldで固定
-                        local weld = Instance.new("WeldConstraint")
-                        weld.Part0 = rootPart
-                        weld.Part1 = hitbox
-                        weld.Parent = hitbox
-
-                        hitboxParts[player] = hitbox
-                    end
+                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    rootPart.Transparency = transparencyValue
+                    rootPart.Material = Enum.Material.ForceField
+                    rootPart.Color = hitboxColor
+                    rootPart.CanCollide = false
+                    rootPart.Anchored = false
+                    rootPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
                 end
             end)
         end)
@@ -2412,8 +2384,11 @@ miscTab:AddSlider({
     Callback = function(value)
         transparencyValue = value
         if featureEnabled then
-            for _, hitbox in pairs(hitboxParts) do
-                hitbox.Transparency = transparencyValue
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = player.Character.HumanoidRootPart
+                    rootPart.Transparency = transparencyValue
+                end
             end
         end
     end
@@ -2429,13 +2404,15 @@ miscTab:AddSlider({
     Callback = function(value)
         hitboxSize = value
         if featureEnabled then
-            for _, hitbox in pairs(hitboxParts) do
-                hitbox.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local rootPart = player.Character.HumanoidRootPart
+                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                end
             end
         end
     end
 })
-
 
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
