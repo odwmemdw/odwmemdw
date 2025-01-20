@@ -2347,7 +2347,7 @@ miscTab:AddToggle({
                     rootPart.Anchored = false
                     rootPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
                 else
-                    rootPart.Size = Vector3.new(0, 0, 0)
+                    rootPart.Size = Vector3.new(2, 2, 1)
                     rootPart.Transparency = 0
                     rootPart.Material = Enum.Material.Plastic
                     rootPart.Color = Color3.fromRGB(255, 255, 255)
