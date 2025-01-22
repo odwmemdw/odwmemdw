@@ -887,17 +887,14 @@ local antiTab = Window:MakeTab({
 
 local isFrozen = false
 
--- キャラクターのパーツを取得してアンカー処理を行う関数
 local function freezeCharacterParts()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
 
-    -- キャラクターが完全にロードされるまで待機
     while not character:FindFirstChild("HumanoidRootPart") do
         wait()
     end
 
-    -- キャラクターのパーツリスト
     local parts = {
         character:FindFirstChild("Left Arm"),
         character:FindFirstChild("Left Leg"),
@@ -907,33 +904,28 @@ local function freezeCharacterParts()
         character:FindFirstChild("HumanoidRootPart")
     }
 
-    -- 無敵状態の間、全てのパーツをアンカーする
     while isFrozen do
         for _, part in pairs(parts) do
             if part and not part.Anchored then
                 part.Anchored = true
             end
         end
-        wait(0.1) -- 負荷を軽減するための待機
+        wait(0.1)
     end
 end
 
--- キャラクターがリセットされるたびに無敵機能を再適用する
 local function setupCharacterFreeze()
     local player = game.Players.LocalPlayer
 
-    -- キャラクターリセットを監視
     player.CharacterAdded:Connect(function(character)
-        -- キャラクターがリセットされても無敵が有効であれば、再適用
         if isFrozen then
             spawn(freezeCharacterParts)
         end
     end)
 end
 
--- トグルUIの設定
 antiTab:AddToggle({
-    Name = "無敵",
+    Name = "自動無敵",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
     Save = true,
@@ -943,7 +935,6 @@ antiTab:AddToggle({
         local player = game.Players.LocalPlayer
         local character = player.Character or player.CharacterAdded:Wait()
 
-        -- キャラクターのパーツリスト
         local parts = {
             character:FindFirstChild("Left Arm"),
             character:FindFirstChild("Left Leg"),
@@ -954,20 +945,16 @@ antiTab:AddToggle({
         }
 
         if isFrozen then
-            -- 初回実行時に全てのパーツをアンカー
             for _, part in pairs(parts) do
                 if part then
                     part.Anchored = true
                 end
             end
 
-            -- 無敵状態の監視を開始
             spawn(freezeCharacterParts)
 
-            -- キャラクターリセット時の処理をセットアップ
             setupCharacterFreeze()
         else
-            -- 無敵解除時に全てのパーツをアンカー解除
             for _, part in pairs(parts) do
                 if part then
                     part.Anchored = false
