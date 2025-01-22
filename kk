@@ -66,6 +66,10 @@ local localPlayer = Players.LocalPlayer
 local localPlayer = Players.LocalPlayer
 local playerCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 
+localPlayer.CharacterAdded:Connect(function(character)
+    playerCharacter = character
+end)
+
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
@@ -703,7 +707,7 @@ local function toggleAutoBlobman(enabled)
     end
 end
 local RunService = game:GetService("RunService")
-local ascendSpeed = 1000
+local ascendSpeed = 10000
 local ascending = false
 local heartbeatConnection
 
@@ -882,30 +886,52 @@ local antiTab = Window:MakeTab({
 })
 
 local isFrozen = false
-local function ForceFreeze()
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
 
+-- キャラクターのパーツを取得してアンカー処理を行う関数
+local function freezeCharacterParts()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    -- キャラクターが完全にロードされるまで待機
     while not character:FindFirstChild("HumanoidRootPart") do
         wait()
     end
-local parts = {
-      character:FindFirstChild("Left Arm"),
-      character:FindFirstChild("Left Leg"),
-      character:FindFirstChild("Right Arm"),
-      character:FindFirstChild("Right Leg"),
-      character:FindFirstChild("Head"),
-      character:FindFirstChild("HumanoidRootPart")
-}
-while isFrozen do
+
+    -- キャラクターのパーツリスト
+    local parts = {
+        character:FindFirstChild("Left Arm"),
+        character:FindFirstChild("Left Leg"),
+        character:FindFirstChild("Right Arm"),
+        character:FindFirstChild("Right Leg"),
+        character:FindFirstChild("Head"),
+        character:FindFirstChild("HumanoidRootPart")
+    }
+
+    -- 無敵状態の間、全てのパーツをアンカーする
+    while isFrozen do
         for _, part in pairs(parts) do
-            if part and part.Anchored == false then
+            if part and not part.Anchored then
                 part.Anchored = true
             end
         end
-        wait()
+        wait(0.1) -- 負荷を軽減するための待機
     end
 end
+
+-- キャラクターがリセットされるたびに無敵機能を再適用する
+local function setupCharacterFreeze()
+    local player = game.Players.LocalPlayer
+
+    -- キャラクターリセットを監視
+    player.CharacterAdded:Connect(function(character)
+        -- キャラクターがリセットされても無敵が有効であれば、再適用
+        if isFrozen then
+            spawn(freezeCharacterParts)
+        end
+    end)
+end
+
+-- トグルUIの設定
 antiTab:AddToggle({
     Name = "無敵",
     Color = Color3.fromRGB(255, 165, 0),
@@ -914,24 +940,34 @@ antiTab:AddToggle({
     Flag = "FreezeToggle",
     Callback = function(value)
         isFrozen = value
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local parts = {
-      character:FindFirstChild("Left Arm"),
-      character:FindFirstChild("Left Leg"),
-      character:FindFirstChild("Right Arm"),
-      character:FindFirstChild("Right Leg"),
-      character:FindFirstChild("Head"),
-      character:FindFirstChild("HumanoidRootPart")
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+
+        -- キャラクターのパーツリスト
+        local parts = {
+            character:FindFirstChild("Left Arm"),
+            character:FindFirstChild("Left Leg"),
+            character:FindFirstChild("Right Arm"),
+            character:FindFirstChild("Right Leg"),
+            character:FindFirstChild("Head"),
+            character:FindFirstChild("HumanoidRootPart")
         }
-if isFrozen then
+
+        if isFrozen then
+            -- 初回実行時に全てのパーツをアンカー
             for _, part in pairs(parts) do
                 if part then
                     part.Anchored = true
                 end
             end
-spawn(ForceFreeze)
+
+            -- 無敵状態の監視を開始
+            spawn(freezeCharacterParts)
+
+            -- キャラクターリセット時の処理をセットアップ
+            setupCharacterFreeze()
         else
+            -- 無敵解除時に全てのパーツをアンカー解除
             for _, part in pairs(parts) do
                 if part then
                     part.Anchored = false
@@ -1151,6 +1187,122 @@ antiTab:AddToggle({
                 currentKunai = nil
             end
         end
+    end
+})
+
+local GrabEvents = ReplicatedStorage:WaitForChild("GrabEvents")
+local CharacterEvents = ReplicatedStorage:WaitForChild("CharacterEvents")
+local SetNetworkOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+local Struggle = CharacterEvents:WaitForChild("Struggle")
+
+local localPlayer = Players.LocalPlayer
+
+-- 設定
+local flingStrength = 400
+local targetPosition = Vector3.new(-542, -7, 76) -- 特定の座標
+local defenseMode = "吹っ飛ばし" -- デフォルトの反撃モード
+local autoDefendCoroutine = nil
+
+local Section = antiTab:AddSection({
+	Name = "自動反撃"
+})
+
+antiTab:AddDropdown({
+    Name = "反撃モード",
+    Default = "ランダム方向",
+    Options = {"吹っ飛ばし", "帰宅", "上昇"},
+    Callback = function(value)
+        defenseMode = value
+        print("Defense mode set to:", defenseMode)
+    end
+})
+
+antiTab:AddToggle({
+    Name = "自動反撃",
+    Default = false,
+    Save = true,
+    Callback = function(enabled)
+        if enabled then
+            autoDefendCoroutine = coroutine.create(function()
+                while wait(0.1) do
+                    local character = localPlayer.Character
+                    if character and character:FindFirstChild("Head") then
+                        local head = character.Head
+                        local partOwner = head:FindFirstChild("PartOwner") -- 掴んできたプレイヤーを特定
+
+                        if partOwner then
+                            local attacker = Players:FindFirstChild(partOwner.Value)
+                            if attacker and attacker.Character then
+                                local humanoidRootPart = attacker.Character:FindFirstChild("HumanoidRootPart")
+
+                                if humanoidRootPart then
+                                    -- 掴み解除
+                                    Struggle:FireServer()
+                                    SetNetworkOwner:FireServer(humanoidRootPart, humanoidRootPart.CFrame)
+
+                                    -- 選択されたモードによる反撃処理
+                                    if defenseMode == "吹っ飛ばし" then
+                                        -- ランダム方向に吹き飛ばす
+                                        local randomDirection = Vector3.new(
+                                            math.random(-100, 100) / 100, -- X
+                                            math.random(50, 100) / 100,  -- Y
+                                            math.random(-100, 100) / 100 -- Z
+                                        ).Unit * flingStrength
+
+                                        local velocity = Instance.new("BodyVelocity", humanoidRootPart)
+                                        velocity.Name = "RandomFlingVelocity"
+                                        velocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                                        velocity.Velocity = randomDirection
+                                        Debris:AddItem(velocity, 1)
+                                        print("Flinging attacker in random direction:", attacker.Name)
+
+                                    elseif defenseMode == "帰宅" then
+                                        -- 特定の座標に飛ばす
+                                        local direction = (targetPosition - humanoidRootPart.Position).Unit * flingStrength
+
+                                        local velocity = Instance.new("BodyVelocity", humanoidRootPart)
+                                        velocity.Name = "TargetFlingVelocity"
+                                        velocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                                        velocity.Velocity = direction
+                                        Debris:AddItem(velocity, 1.5)
+                                        print("Flinged attacker to target position:", attacker.Name)
+
+                                    elseif defenseMode == "上昇" then
+                                        -- 上昇させる
+                                        local velocity = Instance.new("BodyVelocity", humanoidRootPart)
+                                        velocity.Name = "UpwardFlingVelocity"
+                                        velocity.MaxForce = Vector3.new(0, math.huge, 0)
+                                        velocity.Velocity = Vector3.new(0, flingStrength, 0)
+                                        Debris:AddItem(velocity, 1)
+                                        print("Flinged attacker upward:", attacker.Name)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+            coroutine.resume(autoDefendCoroutine)
+            print("Auto defense enabled")
+        else
+            if autoDefendCoroutine then
+                coroutine.close(autoDefendCoroutine)
+                autoDefendCoroutine = nil
+                print("Auto defense disabled")
+            end
+        end
+    end
+})
+
+antiTab:AddSlider({
+    Name = "吹き飛ばす力",
+    Min = 50,
+    Max = 2000,
+    Default = flingStrength,
+    Increment = 50,
+    Callback = function(value)
+        flingStrength = value
+        print("Fling strength set to:", value)
     end
 })
 
@@ -1633,7 +1785,6 @@ local d = game:GetService("Debris")
 local enabled = true
 local auraRadius = 25
 local function getDescendantParts(descendantName)
-local auraCoroutine = nil
 local parts = {}
     for _, descendant in ipairs(workspace.Map:GetDescendants()) do
         if descendant:IsA("Part") and descendant.Name == descendantName then
@@ -1997,52 +2148,6 @@ AuraTab:AddToggle({
     end
 })
 
-AuraTab:AddToggle({
-    Name = "ノークリップオーラ",
-    Default = false,
-    Color = Color3.fromRGB(240, 0, 0),
-    Save = true,
-    Callback = function(enabled)
-        if enabled then
-            -- オーラ処理の開始
-            auraCoroutine = coroutine.create(function()
-                local targetObjects = {"Part", "SoundPart", "BalloonModel", "BookManyPages", "BookNormal"}
-                while true do
-                    local success, err = pcall(function()
-                        local character = Players.LocalPlayer.Character
-                        if character and character:FindFirstChild("HumanoidRootPart") then
-                            local humanoidRootPart = character.HumanoidRootPart
-
-                            -- 対象オブジェクトを取得
-                            for _, descendant in ipairs(Workspace:GetDescendants()) do
-                                if descendant:IsA("BasePart") and table.find(targetObjects, descendant.Name) then
-                                    -- オーラ範囲内のオブジェクトに対して処理
-                                    local distance = (descendant.Position - humanoidRootPart.Position).Magnitude
-                                    if distance <= auraRadius then
-                                        -- ノークリップ処理
-                                        descendant.CanCollide = false
-                                        SetNetworkOwner:FireServer(descendant, descendant.CFrame)
-                                    end
-                                end
-                            end
-                        end
-                    end)
-
-                    if not success then
-                        warn("Error in Aura: " .. tostring(err))
-                    end
-
-                    wait(0.1) -- 負荷を軽減するための待機
-                end
-            end)
-            coroutine.resume(auraCoroutine)
-        elseif auraCoroutine then
-            -- オーラ処理の停止
-            coroutine.close(auraCoroutine)
-            auraCoroutine = nil
-        end
-    end
-})
 local LagTab = Window:MakeTab({
     Name = "ラグ",
     Icon = "",
@@ -2386,95 +2491,6 @@ local miscTab = Window:MakeTab({
       PremiumOnly = false
 })
 
-local hitboxSize = 10
-local transparencyValue = 0
-local featureEnabled = false
-local hitboxColor = Color3.fromRGB(255, 255, 255)
-
-miscTab:AddToggle({
-    Name = "ヒットボックス",
-    Default = false,
-    Callback = function(enabled)
-        featureEnabled = enabled
-
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local rootPart = player.Character.HumanoidRootPart
-                if featureEnabled then
-                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    rootPart.Transparency = transparencyValue
-                    rootPart.Material = Enum.Material.ForceField
-                    rootPart.Color = hitboxColor
-                    rootPart.CanCollide = false
-                    rootPart.Anchored = false
-                    rootPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
-                else
-                    rootPart.Size = Vector3.new(2, 2, 1)
-                    rootPart.Transparency = 0
-                    rootPart.Material = Enum.Material.Plastic
-                    rootPart.Color = Color3.fromRGB(255, 255, 255)
-                    rootPart.CanCollide = true
-                    rootPart.CustomPhysicalProperties = nil
-                end
-            end
-        end
-
-        game.Players.PlayerAdded:Connect(function(player)
-            player.CharacterAdded:Connect(function()
-                if featureEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local rootPart = player.Character.HumanoidRootPart
-                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    rootPart.Transparency = transparencyValue
-                    rootPart.Material = Enum.Material.ForceField
-                    rootPart.Color = hitboxColor
-                    rootPart.CanCollide = false
-                    rootPart.Anchored = false
-                    rootPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
-                end
-            end)
-        end)
-    end
-})
-
-miscTab:AddSlider({
-    Name = "ヒットボックスの色の濃さ",
-    Min = 0,
-    Max = 1,
-    Default = transparencyValue,
-    Increment = 0.1,
-    ValueName = "透明度",
-    Callback = function(value)
-        transparencyValue = value
-        if featureEnabled then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local rootPart = player.Character.HumanoidRootPart
-                    rootPart.Transparency = transparencyValue
-                end
-            end
-        end
-    end
-})
-
-miscTab:AddSlider({
-    Name = "ヒットボックスの大きさ",
-    Min = 1,
-    Max = 10,
-    Default = hitboxSize,
-    Increment = 1,
-    ValueName = "サイズ",
-    Callback = function(value)
-        hitboxSize = value
-        if featureEnabled then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local rootPart = player.Character.HumanoidRootPart
-                    rootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                end
-            end
-        end
-    end
-})
 
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
