@@ -1633,6 +1633,7 @@ local d = game:GetService("Debris")
 local enabled = true
 local auraRadius = 25
 local function getDescendantParts(descendantName)
+local auraCoroutine = nil
 local parts = {}
     for _, descendant in ipairs(workspace.Map:GetDescendants()) do
         if descendant:IsA("Part") and descendant.Name == descendantName then
@@ -1996,6 +1997,52 @@ AuraTab:AddToggle({
     end
 })
 
+AuraTab:AddToggle({
+    Name = "ノークリップオーラ",
+    Default = false,
+    Color = Color3.fromRGB(240, 0, 0),
+    Save = true,
+    Callback = function(enabled)
+        if enabled then
+            -- オーラ処理の開始
+            auraCoroutine = coroutine.create(function()
+                local targetObjects = {"Part", "SoundPart", "BalloonModel", "BookManyPages", "BookNormal"}
+                while true do
+                    local success, err = pcall(function()
+                        local character = Players.LocalPlayer.Character
+                        if character and character:FindFirstChild("HumanoidRootPart") then
+                            local humanoidRootPart = character.HumanoidRootPart
+
+                            -- 対象オブジェクトを取得
+                            for _, descendant in ipairs(Workspace:GetDescendants()) do
+                                if descendant:IsA("BasePart") and table.find(targetObjects, descendant.Name) then
+                                    -- オーラ範囲内のオブジェクトに対して処理
+                                    local distance = (descendant.Position - humanoidRootPart.Position).Magnitude
+                                    if distance <= auraRadius then
+                                        -- ノークリップ処理
+                                        descendant.CanCollide = false
+                                        SetNetworkOwner:FireServer(descendant, descendant.CFrame)
+                                    end
+                                end
+                            end
+                        end
+                    end)
+
+                    if not success then
+                        warn("Error in Aura: " .. tostring(err))
+                    end
+
+                    wait(0.1) -- 負荷を軽減するための待機
+                end
+            end)
+            coroutine.resume(auraCoroutine)
+        elseif auraCoroutine then
+            -- オーラ処理の停止
+            coroutine.close(auraCoroutine)
+            auraCoroutine = nil
+        end
+    end
+})
 local LagTab = Window:MakeTab({
     Name = "ラグ",
     Icon = "",
