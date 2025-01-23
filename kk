@@ -975,33 +975,9 @@ local CE = RS:WaitForChild("CharacterEvents")
 local BeingHeld = Player:WaitForChild("IsHeld")
 local StruggleEvent = CE:WaitForChild("Struggle")
 
-local targetNames = {
-    "RightDetector",
-    "LeftDetector",
-}
-
 local toggleState = false
 local CurrentConnection = nil
 local DetectorMonitorConnection = nil
-
-local function deleteObjects()
-    for _, name in pairs(targetNames) do
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj.Name == name then
-                obj:Destroy()
-            end
-        end
-    end
-end
-
-local function monitorNewDetectors()
-    DetectorMonitorConnection = Workspace.ChildAdded:Connect(function(child)
-        if table.find(targetNames, child.Name) then
-            child:Destroy()
-            print("新しい " .. child.Name .. " を削除しました。")
-        end
-    end)
-end
 
 antiTab:AddToggle({
     Name = "アンチ掴み",
@@ -1011,10 +987,19 @@ antiTab:AddToggle({
         if toggleState then
             print("アンチ掴みと削除を有効化")
 
-            deleteObjects()
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                if obj.Name == "RightDetector" or obj.Name == "LeftDetector" then
+                    obj:Destroy()
+                end
+            end
             print("既存の対象オブジェクトを削除しました。")
 
-            monitorNewDetectors()
+            DetectorMonitorConnection = Workspace.ChildAdded:Connect(function(child)
+                if child.Name == "RightDetector" or child.Name == "LeftDetector" then
+                    child:Destroy()
+                    print("新しい " .. child.Name .. " を削除しました。")
+                end
+            end)
 
             local char = Player.Character or Player.CharacterAdded:Wait()
             local rootPart = char:WaitForChild("HumanoidRootPart")
@@ -1076,6 +1061,7 @@ antiTab:AddToggle({
         end
     end
 })
+
 
 
 
