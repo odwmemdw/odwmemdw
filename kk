@@ -964,31 +964,61 @@ antiTab:AddToggle({
     end
 })
 
+
 local PS = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local R = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Player = PS.LocalPlayer
 local CE = RS:WaitForChild("CharacterEvents")
 local BeingHeld = Player:WaitForChild("IsHeld")
 local StruggleEvent = CE:WaitForChild("Struggle")
 
-local AntiGrabEnabled = false
+local targetNames = {
+    "RightDetector",
+    "LeftDetector",
+}
+
+local toggleState = false
 local CurrentConnection = nil
+local DetectorMonitorConnection = nil
+
+local function deleteObjects()
+    for _, name in pairs(targetNames) do
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name == name then
+                obj:Destroy()
+            end
+        end
+    end
+end
+
+local function monitorNewDetectors()
+    DetectorMonitorConnection = Workspace.ChildAdded:Connect(function(child)
+        if table.find(targetNames, child.Name) then
+            child:Destroy()
+            print("新しい " .. child.Name .. " を削除しました。")
+        end
+    end)
+end
 
 antiTab:AddToggle({
     Name = "アンチ掴み",
     Default = false,
-    Color = Color3.fromRGB(255, 165, 0),
-    Callback = function(Value)
-        AntiGrabEnabled = Value
-        if Value then
-            print("アンチ掴み有効化")
+    Callback = function(state)
+        toggleState = state
+        if toggleState then
+            print("アンチ掴みと削除を有効化")
+
+            deleteObjects()
+            print("既存の対象オブジェクトを削除しました。")
+
+            monitorNewDetectors()
 
             local char = Player.Character or Player.CharacterAdded:Wait()
             local rootPart = char:WaitForChild("HumanoidRootPart")
 
-            -- Character Added Event
             Player.CharacterAdded:Connect(function(newChar)
                 char = newChar
                 local Humanoid = newChar:WaitForChild("Humanoid")
@@ -1006,14 +1036,13 @@ antiTab:AddToggle({
                 rootPart = newChar:WaitForChild("HumanoidRootPart")
             end)
 
-            -- Anti Grab Logic
             if CurrentConnection then
                 CurrentConnection:Disconnect()
                 CurrentConnection = nil
             end
 
             BeingHeld.Changed:Connect(function()
-                if AntiGrabEnabled and BeingHeld.Value == true then
+                if toggleState and BeingHeld.Value == true then
                     if CurrentConnection then
                         CurrentConnection:Disconnect()
                     end
@@ -1039,10 +1068,18 @@ antiTab:AddToggle({
                 CurrentConnection:Disconnect()
                 CurrentConnection = nil
             end
-            print("アンチ掴み無効化")
+            if DetectorMonitorConnection then
+                DetectorMonitorConnection:Disconnect()
+                DetectorMonitorConnection = nil
+            end
+            print("アンチ掴みと削除を無効化")
         end
     end
 })
+
+
+
+
 antiTab:AddToggle({
     Name = "アンチ爆発",
     Default = false,
