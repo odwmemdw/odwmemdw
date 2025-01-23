@@ -1025,7 +1025,7 @@ antiTab:AddToggle({
 
                         rootPart.AssemblyLinearVelocity = Vector3.zero
                         rootPart.AssemblyAngularVelocity = Vector3.zero
-                        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0.1, 0)
+                        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0.0001, 0)
 
                         if BeingHeld.Value == false and CurrentConnection then
                             CurrentConnection:Disconnect()
