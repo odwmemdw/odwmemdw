@@ -1793,6 +1793,8 @@ local r = game:GetService("RunService")
 local d = game:GetService("Debris")
 local enabled = true
 local auraRadius = 25
+local auraCoroutine = nil
+local localPlayer = Players.LocalPlayer
 local function getDescendantParts(descendantName)
 local parts = {}
     for _, descendant in ipairs(workspace.Map:GetDescendants()) do
@@ -1987,60 +1989,82 @@ AuraTab:AddToggle({
     end
 })
 
-R_a = 1
+local moveSpeed = 20
+
 AuraTab:AddToggle({
-    Name = "フリーズオーラ",
-    Color = Color3.fromRGB(0, 255, 0),
+    Name = "引き寄せオーラ",
     Default = false,
-    Flag = "FreezeAurav2",
+    Save = true,
     Callback = function(enabled)
         if enabled then
             auraCoroutine = coroutine.create(function()
                 while true do
                     local success, err = pcall(function()
                         local character = localPlayer.Character
-                        if character and character:FindFirstChild("Head") and character:FindFirstChild("HumanoidRootPart") then
-                            local head = character.Head
+                        if character and character:FindFirstChild("HumanoidRootPart") then
                             local humanoidRootPart = character.HumanoidRootPart
 
+                            -- 他プレイヤーを探索
                             for _, player in pairs(Players:GetPlayers()) do
-                                coroutine.wrap(function()
-                                    if player ~= localPlayer and player.Character then
-                                        local playerCharacter = player.Character
-                                        local playerTorso = playerCharacter:FindFirstChild("Torso")
-                                        if playerTorso then
-                                            local distance = (playerTorso.Position - humanoidRootPart.Position).Magnitude
-                                            if distance <= auraRadius then
-                                                SetNetworkOwner:FireServer(playerTorso, playerCharacter.HumanoidRootPart.FirePlayerPart.CFrame)
-                                                task.wait(0.1)
-                                                local velocity = playerTorso:FindFirstChild("l") or Instance.new("BodyVelocity", playerTorso)
-                                                velocity.Name = "l"
-                                                velocity.Velocity = Vector3.new(0, 0, 0)
-                                                velocity.MaxForce = Vector3.new(0, math.huge, 0)
-                                                Debris:AddItem(velocity, 1000000000000)
-                                            end
+                                if player ~= localPlayer and player.Character then
+                                    local targetCharacter = player.Character
+                                    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+
+                                    if targetRootPart then
+                                        local distance = (targetRootPart.Position - humanoidRootPart.Position).Magnitude
+                                        if distance <= auraRadius then
+                                            -- SetNetworkOwnerを設定
+                                            SetNetworkOwner:FireServer(targetRootPart, targetCharacter.HumanoidRootPart.CFrame)
+
+                                            -- 自分の位置への方向を計算
+                                            local direction = (humanoidRootPart.Position - targetRootPart.Position).Unit * moveSpeed
+
+                                            -- BodyVelocityを作成して引き寄せる
+                                            local velocityObj = Instance.new("BodyVelocity", targetRootPart)
+                                            velocityObj.Name = "PullVelocity"
+                                            velocityObj.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                                            velocityObj.Velocity = direction
+                                            velocityObj.P = 1250
+                                            velocityObj.Parent = targetRootPart
+
+                                            -- 一定時間後に削除
+                                            Debris:AddItem(velocityObj, 0.1)
                                         end
                                     end
-                                end)()
+                                end
                             end
                         end
                     end)
+
                     if not success then
-                        warn("Error in Air Suspend Aura: " .. tostring(err))
+                        warn("Error in Aura Process: " .. tostring(err))
                     end
-                    wait(R_a)
+                    wait(0)
                 end
             end)
             coroutine.resume(auraCoroutine)
+            print("Aura Enabled")
         else
             if auraCoroutine then
                 coroutine.close(auraCoroutine)
                 auraCoroutine = nil
+                print("Aura Disabled")
             end
         end
     end
 })
 
+AuraTab:AddSlider({
+    Name = 引き寄せ即答",
+    Min = 10,
+    Max = 200,
+    Default = moveSpeed,
+    Increment = 10,
+    Callback = function(value)
+        moveSpeed = value
+        print("Move speed set to:", value)
+    end
+})
 P_ap = 1
 AuraTab:AddToggle({
     Name = "埋まるオーラ",
@@ -2090,6 +2114,61 @@ AuraTab:AddToggle({
         elseif gravityCoroutine then
             coroutine.close(gravityCoroutine)
             gravityCoroutine = nil
+        end
+    end
+})
+
+local targetPosition = Vector3.new(-530, -7, 91) -- テレポート先の座標
+
+AuraTab:AddToggle({
+    Name = "テレポートオーラ",
+    Default = false,
+    Save = true,
+    Callback = function(enabled)
+        if enabled then
+            auraCoroutine = coroutine.create(function()
+                while true do
+                    local success, err = pcall(function()
+                        local character = localPlayer.Character
+                        if character and character:FindFirstChild("HumanoidRootPart") then
+                            local humanoidRootPart = character.HumanoidRootPart
+
+                            -- 他プレイヤーを探索
+                            for _, player in pairs(Players:GetPlayers()) do
+                                if player ~= localPlayer and player.Character then
+                                    local targetCharacter = player.Character
+                                    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+
+                                    if targetRootPart then
+                                        local distance = (targetRootPart.Position - humanoidRootPart.Position).Magnitude
+                                        if distance <= auraRadius then
+                                            -- SetNetworkOwnerを設定し、プレイヤーをテレポート
+                                            SetNetworkOwner:FireServer(targetRootPart, targetCharacter.HumanoidRootPart.CFrame)
+
+                                            -- プレイヤーの位置をテレポート先座標に変更
+                                            targetRootPart.CFrame = CFrame.new(targetPosition)
+                                            print("Teleported player:", player.Name)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+
+                    if not success then
+                        warn("Error in Aura Process: " .. tostring(err))
+                    end
+                    wait(0)
+                end
+            end)
+            coroutine.resume(auraCoroutine)
+            print("Aura Enabled")
+        else
+            if auraCoroutine then
+                coroutine.close(auraCoroutine)
+                auraCoroutine = nil
+                print("Aura Disabled")
+            end
         end
     end
 })
