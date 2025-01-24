@@ -1191,12 +1191,12 @@ local SetNetworkOwner = GrabEvents:WaitForChild("SetNetworkOwner")
 local Struggle = CharacterEvents:WaitForChild("Struggle")
 
 local flingStrength = 400
-local targetPosition = Vector3.new(-542, -7, 76)
+local targetPosition = Vector3.new(-530, -7, 91)
 local defenseMode = "吹っ飛ばし"
 local autoDefendCoroutine = nil
 
 local Section = antiTab:AddSection({
-	Name = "自動反撃"
+    Name = "自動反撃"
 })
 
 antiTab:AddDropdown({
@@ -1217,10 +1217,10 @@ antiTab:AddToggle({
         if enabled then
             autoDefendCoroutine = coroutine.create(function()
                 while wait(0.1) do
-                    local character = localPlayer.Character
+                    local character = game.Players.LocalPlayer.Character
                     if character and character:FindFirstChild("Head") then
                         local head = character.Head
-                        local partOwner = head:FindFirstChild("PartOwner") -- 掴んできたプレイヤーを特定
+                        local partOwner = head:FindFirstChild("PartOwner")
 
                         if partOwner then
                             local attacker = Players:FindFirstChild(partOwner.Value)
@@ -1228,13 +1228,10 @@ antiTab:AddToggle({
                                 local humanoidRootPart = attacker.Character:FindFirstChild("HumanoidRootPart")
 
                                 if humanoidRootPart then
-                                    -- 掴み解除
-                                    Struggle:FireServer()
-                                    SetNetworkOwner:FireServer(humanoidRootPart, humanoidRootPart.CFrame)
+                                    ReplicatedStorage.CharacterEvents.Struggle:FireServer()
+                                    ReplicatedStorage.GrabEvents.SetNetworkOwner:FireServer(humanoidRootPart, humanoidRootPart.CFrame)
 
-                                    -- 選択されたモードによる反撃処理
                                     if defenseMode == "吹っ飛ばし" then
-                                        -- ランダム方向に吹き飛ばす
                                         local randomDirection = Vector3.new(
                                             math.random(-100, 100) / 100, -- X
                                             math.random(50, 100) / 100,  -- Y
@@ -1249,18 +1246,10 @@ antiTab:AddToggle({
                                         print("Flinging attacker in random direction:", attacker.Name)
 
                                     elseif defenseMode == "帰宅" then
-                                        -- 特定の座標に飛ばす
-                                        local direction = (targetPosition - humanoidRootPart.Position).Unit * flingStrength
-
-                                        local velocity = Instance.new("BodyVelocity", humanoidRootPart)
-                                        velocity.Name = "TargetFlingVelocity"
-                                        velocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                                        velocity.Velocity = direction
-                                        Debris:AddItem(velocity, 1.5)
-                                        print("Flinged attacker to target position:", attacker.Name)
+                                        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+                                        print("Teleported attacker to target position:", attacker.Name)
 
                                     elseif defenseMode == "上昇" then
-                                        -- 上昇させる
                                         local velocity = Instance.new("BodyVelocity", humanoidRootPart)
                                         velocity.Name = "UpwardFlingVelocity"
                                         velocity.MaxForce = Vector3.new(0, math.huge, 0)
