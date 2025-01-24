@@ -1191,7 +1191,7 @@ local SetNetworkOwner = GrabEvents:WaitForChild("SetNetworkOwner")
 local Struggle = CharacterEvents:WaitForChild("Struggle")
 
 local flingStrength = 400
-local targetPosition = Vector3.new(-530, -7, 91)
+local targetPosition = Vector3.new(-591, 10, 113)
 local defenseMode = "吹っ飛ばし"
 local autoDefendCoroutine = nil
 
@@ -1878,7 +1878,7 @@ AuraTab:AddToggle({
 })
 
 
-local targetPosition = Vector3.new(-530, -7, 91)
+local targetPosition = Vector3.new(-591, 10, 113)
 local auraCoroutine = nil
 AuraTab:AddToggle({
     Name = "強制帰宅オーラ",
