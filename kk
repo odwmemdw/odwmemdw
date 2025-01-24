@@ -1892,7 +1892,7 @@ AuraTab:AddToggle({
 local targetPosition = Vector3.new(-530, -7, 91)
 local auraCoroutine = nil
 AuraTab:AddToggle({
-    Name = "テレポートオーラ",
+    Name = "強制帰宅オーラ",
     Default = false,
     Save = true,
     Callback = function(enabled)
