@@ -1,0 +1,319 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
+local Window = OrionLib:MakeWindow({Name = "ライバル鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+
+local replicated_storage = game:GetService("ReplicatedStorage")
+local players = game:GetService("Players")
+
+local camera = workspace.CurrentCamera
+local utility = require(replicated_storage.Modules.Utility)
+
+local aimbotEnabled = false
+
+local function get_players()
+    local entities = {}
+
+    for _, child in ipairs(workspace:GetChildren()) do
+        if child:FindFirstChildOfClass("Humanoid") then
+            table.insert(entities, child)
+        elseif child.Name == "HurtEffect" then
+            for _, hurt_player in ipairs(child:GetChildren()) do
+                if hurt_player.ClassName ~= "Highlight" then
+                    table.insert(entities, hurt_player)
+                end
+            end
+        end
+    end
+    return entities
+end
+
+local function get_closest_player()
+    local closest, closest_distance = nil, math.huge
+    local character = players.LocalPlayer.Character
+
+    if not character then return end
+
+    for _, player in ipairs(get_players()) do
+        if player == players.LocalPlayer then continue end
+        if not player:FindFirstChild("HumanoidRootPart") then continue end
+
+        local position, on_screen = camera:WorldToViewportPoint(player.HumanoidRootPart.Position)
+        if not on_screen then continue end
+
+        local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+        local distance = (center - Vector2.new(position.X, position.Y)).Magnitude
+
+        if distance < closest_distance then
+            closest = player
+            closest_distance = distance
+        end
+    end
+    return closest
+end
+
+local old = utility.Raycast
+utility.Raycast = function(...)
+    local arguments = {...}
+    if aimbotEnabled and #arguments > 0 and arguments[4] == 999 then
+        local closest = get_closest_player()
+        if closest then
+            arguments[3] = closest.Head.Position
+        end
+    end
+    return old(table.unpack(arguments))
+end
+
+local aimTab = Window:MakeTab({
+      Name = "エイム",
+      Icon = "",
+      PremiumOnly = false
+})
+
+aimTab:AddToggle({
+    Name = "サイレントエイム",
+    Default = false,
+    Callback = function(value)
+        aimbotEnabled = value
+    end
+})
+
+local fov = 100
+local maxDistance = 50
+local maxTransparency = 0.1
+local teamCheck = false
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Cam = workspace.CurrentCamera
+local FOVring = Drawing.new("Circle")
+
+FOVring.Visible = true
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128)
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Cam.ViewportSize / 2
+
+local function updateDrawings()
+    FOVring.Position = Cam.ViewportSize / 2
+end
+
+local function lookAt(target)
+    local lookVector = (target - Cam.CFrame.Position).unit
+    Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + lookVector)
+end
+
+local function calculateTransparency(distance)
+    return (1 - (distance / fov)) * maxTransparency
+end
+
+local function isPlayerAlive(player)
+    local character = player.Character
+    return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
+end
+
+local function getClosestPlayerInFOV(trg_part)
+    local nearest, last = nil, math.huge
+    local playerMousePos = Cam.ViewportSize / 2
+    local localPlayer = Players.LocalPlayer
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and (not teamCheck or player.Team ~= localPlayer.Team) and isPlayerAlive(player) then
+            local part = player.Character and player.Character:FindFirstChild(trg_part)
+            if part then
+                local ePos, isVisible = Cam:WorldToViewportPoint(part.Position)
+                local distance = (Vector2.new(ePos.X, ePos.Y) - playerMousePos).Magnitude
+
+                if distance < last and isVisible and distance < fov and distance < maxDistance then
+                    last = distance
+                    nearest = player
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+aimTab:AddToggle({
+    Name = "オートエイム",
+    Default = false,
+    Callback = function(state)
+        if state then
+            RunService:BindToRenderStep("AutoAim", Enum.RenderPriority.Camera.Value, function()
+                updateDrawings()
+                local closest = getClosestPlayerInFOV("Head")
+
+                if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+                    lookAt(closest.Character.Head.Position)
+                end
+
+                if closest then
+                    local ePos, isVisible = Cam:WorldToViewportPoint(closest.Character.Head.Position)
+                    local distance = (Vector2.new(ePos.X, ePos.Y) - (Cam.ViewportSize / 2)).Magnitude
+                    FOVring.Transparency = calculateTransparency(distance)
+                else
+                    FOVring.Transparency = maxTransparency
+                end
+            end)
+        else
+            RunService:UnbindFromRenderStep("AutoAim")
+            FOVring.Transparency = maxTransparency
+        end
+    end
+})
+
+local espTab = Window:MakeTab({
+      Name = "ESP",
+      Icon = "",
+      PremiumOnly = false
+})
+
+local FillColor = Color3.fromRGB(175, 25, 255)
+local DepthMode = "AlwaysOnTop"
+local FillTransparency = 0.5
+local OutlineColor = Color3.fromRGB(255, 255, 255)
+local OutlineTransparency = 0
+
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local connections = {}
+
+local Storage = CoreGui:FindFirstChild("Highlight_Storage") or Instance.new("Folder")
+Storage.Name = "Highlight_Storage"
+Storage.Parent = CoreGui
+
+espTab:AddToggle({
+    Name = "ハイライト",
+    Default = false,
+    Save = true,
+    Callback = function(state)
+        if state then
+            -- ハイライトを有効化
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= lp then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = player.Name
+                    highlight.FillColor = FillColor
+                    highlight.DepthMode = DepthMode
+                    highlight.FillTransparency = FillTransparency
+                    highlight.OutlineColor = OutlineColor
+                    highlight.OutlineTransparency = OutlineTransparency
+                    highlight.Parent = Storage
+
+                    local character = player.Character
+                    if character then
+                        highlight.Adornee = character
+                    end
+
+                    -- キャラクターが変更された場合の処理
+                    connections[player] = player.CharacterAdded:Connect(function(newChar)
+                        highlight.Adornee = newChar
+                    end)
+                end
+            end
+
+            -- 新しいプレイヤーが参加した時の処理
+            connections["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
+                if player ~= lp then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = player.Name
+                    highlight.FillColor = FillColor
+                    highlight.DepthMode = DepthMode
+                    highlight.FillTransparency = FillTransparency
+                    highlight.OutlineColor = OutlineColor
+                    highlight.OutlineTransparency = OutlineTransparency
+                    highlight.Parent = Storage
+
+                    player.CharacterAdded:Connect(function(newChar)
+                        highlight.Adornee = newChar
+                    end)
+                end
+            end)
+        else
+            -- ハイライトを無効化
+            for _, highlight in pairs(Storage:GetChildren()) do
+                highlight:Destroy()
+            end
+
+            -- すべての接続を切断
+            for _, connection in pairs(connections) do
+                if connection then
+                    connection:Disconnect()
+                end
+            end
+            connections = {}
+        end
+    end
+})
+
+local espEnabled = false
+local espConnections = {}
+
+espTab:AddToggle({
+    Name = "ESP",
+    Default = false,
+    Callback = function(state)
+        espEnabled = state
+
+        if espEnabled then
+            espConnections.RenderStepped = RunService.RenderStepped:Connect(function()
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        if not player.Character:FindFirstChild("ESPBillboard") then
+                            local billboardGui = Instance.new("BillboardGui")
+                            billboardGui.Name = "ESPBillboard"
+                            billboardGui.Size = UDim2.new(0, 50, 0, 60)
+                            billboardGui.AlwaysOnTop = true
+                            billboardGui.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+                            billboardGui.StudsOffset = Vector3.new(0, 5, 0)
+
+                            local frame = Instance.new("Frame", billboardGui)
+                            frame.Size = UDim2.new(1, 0, 1, 0)
+                            frame.BackgroundTransparency = 1
+
+                            local imageLabel = Instance.new("ImageLabel", frame)
+                            imageLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                            imageLabel.Position = UDim2.new(0, 0, 0, 0)
+                            imageLabel.BackgroundTransparency = 1
+                            imageLabel.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(player.UserId) .. "&w=150&h=150"
+
+                            local textLabel = Instance.new("TextLabel", frame)
+                            textLabel.Size = UDim2.new(0.8, 0, 0.25, 0)
+                            textLabel.Position = UDim2.new(0.1, 0, 0.5, 0)
+                            textLabel.BackgroundTransparency = 1
+                            textLabel.Text = player.DisplayName
+                            textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            textLabel.TextScaled = true
+                            textLabel.Font = Enum.Font.SourceSansBold
+                            textLabel.TextWrapped = true
+                            textLabel.TextSize = 10
+
+                            billboardGui.Parent = player.Character
+                        end
+                    end
+                end
+            end)
+            print("ESPを有効化しました")
+        else
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESPBillboard") then
+                    player.Character.ESPBillboard:Destroy()
+                end
+            end
+
+            if espConnections.RenderStepped then
+                espConnections.RenderStepped:Disconnect()
+                espConnections.RenderStepped = nil
+            end
+            print("ESPを無効化しました")
+        end
+    end
+})
+
+Players.PlayerRemoving:Connect(function(player)
+    if player.Character and player.Character:FindFirstChild("ESPBillboard") then
+        player.Character.ESPBillboard:Destroy()
+    end
+end)
+
+OrionLib:Init()
