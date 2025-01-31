@@ -1,5 +1,5 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
-local Window = OrionLib:MakeWindow({Name = "ライバル鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+local Window = OrionLib:MakeWindow({Name = "射精ハブ", HidePremium = false, IntoroEnabled = false,IntroText = ﾋﾟｭｯﾋﾟｭｯ!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
 
 local replicated_storage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
