@@ -34,15 +34,14 @@ local function get_closest_player()
 
     for _, player in ipairs(get_players()) do
         if player == players.LocalPlayer then continue end
-        if not player:FindFirstChild("HumanoidRootPart") then continue end
+        if not player:FindFirstChild("HumanoidRootPart") or not player:FindFirstChild("Head") then continue end
 
-        local position, on_screen = camera:WorldToViewportPoint(player.HumanoidRootPart.Position)
-        if not on_screen then continue end
-
+        local position = camera:WorldToViewportPoint(player.HumanoidRootPart.Position)
         local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
         local distance = (center - Vector2.new(position.X, position.Y)).Magnitude
 
-        if distance < closest_distance then
+        -- 条件をなくし、どこにいてもターゲットにできるようにする
+        if distance < closest_distance or closest_distance == math.huge then
             closest = player
             closest_distance = distance
         end
@@ -56,16 +55,16 @@ utility.Raycast = function(...)
     if aimbotEnabled and #arguments > 0 and arguments[4] == 999 then
         local closest = get_closest_player()
         if closest then
-            arguments[3] = closest.Head.Position
+            arguments[3] = closest.Head.Position -- ヘッドショット狙い
         end
     end
     return old(table.unpack(arguments))
 end
 
 local aimTab = Window:MakeTab({
-      Name = "エイム",
-      Icon = "",
-      PremiumOnly = false
+    Name = "エイム",
+    Icon = "",
+    PremiumOnly = false
 })
 
 aimTab:AddToggle({
