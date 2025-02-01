@@ -61,13 +61,13 @@ utility.Raycast = function(...)
 end
 
 local aimTab = Window:MakeTab({
-    Name = "main",
+    Name = "Main",
     Icon = "",
     PremiumOnly = false
 })
 
 aimTab:AddToggle({
-    Name = "silent aim",
+    Name = "Silent aim",
     Default = false,
     Callback = function(value)
         aimbotEnabled = value
@@ -133,7 +133,7 @@ local function getClosestPlayerInFOV(trg_part)
 end
 
 aimTab:AddToggle({
-    Name = "auto aim",
+    Name = "Auto aim",
     Default = false,
     Callback = function(state)
         if state then
@@ -166,82 +166,81 @@ local espTab = Window:MakeTab({
       PremiumOnly = false
 })
 
-local FillColor = Color3.fromRGB(175, 25, 255)
-local DepthMode = "AlwaysOnTop"
-local FillTransparency = 0.5
-local OutlineColor = Color3.fromRGB(255, 255, 255)
-local OutlineTransparency = 0
-
-local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local connections = {}
+local RunService = game:GetService("RunService")
 
-local Storage = CoreGui:FindFirstChild("Highlight_Storage") or Instance.new("Folder")
-Storage.Name = "Highlight_Storage"
-Storage.Parent = CoreGui
+local highlightInstances = {}
+local rainbowActive = false
+
+local function applyHighlight(player)
+    if player.Character and not highlightInstances[player] then
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = player.Character
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlightInstances[player] = highlight
+    end
+end
+
+local function highlightAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer then
+            applyHighlight(player)
+        end
+    end
+end
+
+local function removeHighlights()
+    for _, highlight in pairs(highlightInstances) do
+        if highlight then
+            highlight:Destroy()
+        end
+    end
+    highlightInstances = {}
+end
+
+local function startRainbowEffect()
+    rainbowActive = true
+    local hue = 0
+
+    while rainbowActive do
+        hue = (hue + 0.02) % 1 
+
+        local color = Color3.fromHSV(hue, 1, 1)
+
+        for _, highlight in pairs(highlightInstances) do
+            if highlight then
+                highlight.FillColor = color
+                highlight.OutlineColor = color
+            end
+        end
+
+        task.wait(0.02)
+    end
+end
+
+ local function toggleRainbowHighlight(state)
+    if state then
+        highlightAllPlayers()
+        startRainbowEffect()
+    else
+        rainbowActive = false
+        removeHighlights()
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if rainbowActive then
+        task.wait(1)
+        applyHighlight(player)
+    end
+end)
 
 espTab:AddToggle({
-    Name = "ESP（highlight）",
+    Name = "Highlights",
     Default = false,
-    Save = true,
-    Callback = function(state)
-        if state then
-            -- ハイライトを有効化
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= lp then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = player.Name
-                    highlight.FillColor = FillColor
-                    highlight.DepthMode = DepthMode
-                    highlight.FillTransparency = FillTransparency
-                    highlight.OutlineColor = OutlineColor
-                    highlight.OutlineTransparency = OutlineTransparency
-                    highlight.Parent = Storage
-
-                    local character = player.Character
-                    if character then
-                        highlight.Adornee = character
-                    end
-
-                    -- キャラクターが変更された場合の処理
-                    connections[player] = player.CharacterAdded:Connect(function(newChar)
-                        highlight.Adornee = newChar
-                    end)
-                end
-            end
-
-            -- 新しいプレイヤーが参加した時の処理
-            connections["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
-                if player ~= lp then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = player.Name
-                    highlight.FillColor = FillColor
-                    highlight.DepthMode = DepthMode
-                    highlight.FillTransparency = FillTransparency
-                    highlight.OutlineColor = OutlineColor
-                    highlight.OutlineTransparency = OutlineTransparency
-                    highlight.Parent = Storage
-
-                    player.CharacterAdded:Connect(function(newChar)
-                        highlight.Adornee = newChar
-                    end)
-                end
-            end)
-        else
-            -- ハイライトを無効化
-            for _, highlight in pairs(Storage:GetChildren()) do
-                highlight:Destroy()
-            end
-
-            -- すべての接続を切断
-            for _, connection in pairs(connections) do
-                if connection then
-                    connection:Disconnect()
-                end
-            end
-            connections = {}
-        end
+    Callback = function(value)
+        toggleRainbowHighlight(value)
     end
 })
 
@@ -249,7 +248,7 @@ local espEnabled = false
 local espConnections = {}
 
 espTab:AddToggle({
-    Name = "ESP（icon）",
+    Name = "ESP（Icon）",
     Default = false,
     Callback = function(state)
         espEnabled = state
@@ -317,22 +316,22 @@ end)
 
 
 local settings = {
-    enabled = false, -- Orion 起動時はオフ
+    enabled = false,
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local espObjects = {}
-local espConnections = {} -- RenderStepped の接続を管理
+local espConnections = {}
 
 function esp(player)
     if not settings.enabled then return end
-    if player == Players.LocalPlayer then return end -- 自分自身にはESPを適用しない
+    if player == Players.LocalPlayer then return end
 
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    local espColor = Color3.new(1, 1, 1) -- 白色
+    local espColor = Color3.new(1, 1, 1)
 
     local Box = Drawing.new("Square")
     Box.Color = espColor
@@ -355,7 +354,6 @@ function esp(player)
 
     espObjects[player] = {box = Box, tracer = tracer, name = name}
 
-    -- RenderStepped の接続をクリアしてから新規作成
     if espConnections[player] then
         espConnections[player]:Disconnect()
     end
@@ -426,12 +424,11 @@ end
 
 
 espTab:AddToggle({
-    Name = "ESP（line&box）",
+    Name = "ESP（Line&Box）",
     Default = false,
     Callback = function(state)
         settings.enabled = state
 
-        -- トグルがオフになったときに全ての ESP を削除
         if not state then
             for _, player in pairs(Players:GetPlayers()) do
                 remove(player)
