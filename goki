@@ -249,7 +249,7 @@ local espEnabled = false
 local espConnections = {}
 
 espTab:AddToggle({
-    Name = "ESP",
+    Name = "ESP（icon）",
     Default = false,
     Callback = function(state)
         espEnabled = state
