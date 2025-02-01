@@ -67,7 +67,7 @@ local aimTab = Window:MakeTab({
 })
 
 aimTab:AddToggle({
-    Name = "サイレントエイム",
+    Name = "ホーミング",
     Default = false,
     Callback = function(value)
         aimbotEnabled = value
