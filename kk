@@ -2371,90 +2371,104 @@ local espTab = Window:MakeTab({
       PremiumOnly = false
 })
 
-local FillColor = Color3.fromRGB(175, 25, 255)
-local DepthMode = "AlwaysOnTop"
-local FillTransparency = 0.5
-local OutlineColor = Color3.fromRGB(255, 255, 255)
-local OutlineTransparency = 0
-
-local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local connections = {}
-
-local Storage = CoreGui:FindFirstChild("Highlight_Storage") or Instance.new("Folder")
-Storage.Name = "Highlight_Storage"
-Storage.Parent = CoreGui
+getgenv().esp = false
+getgenv().teamcheck = false
+getgenv().Color = Color3.fromRGB(255, 0, 0)
+espTab:AddToggle({
+	Name = "ハイライト",
+	Default = false,
+	Callback = function(Value)
+		getgenv().esp = Value
+		spawn(function()
+		while wait() do
+		    if not getgenv().esp then
+		          for i,v in pairs(game.Players:GetChildren()) do
+		              if v.Character and v.Character:FindFirstChild("Highlight") then
+		                  local Highlight = v.Character:FindFirstChild("Highlight")
+		                  Highlight.Enabled = false
+    		      end
+		      end 
+		      else
+		          for i,v in pairs(game.Players:GetChildren()) do
+		             if getgenv().teamcheck == true then
+		               if v.Character and v ~= game.Players.LocalPlayer and v.TeamColor ~= game.Players.LocalPlayer.TeamColor then
+    		                 if v.Character:FindFirstChild("Highlight") then
+    		                 local Highlight = v.Character:FindFirstChild("Highlight") 
+    		                 Highlight.Enabled = true
+    		                 Highlight.FillColor = getgenv().Color
+    		                 Highlight.Adornee = v.Character
+    		                 else
+    		                 local Highlight = Instance.new("Highlight",v.Character)
+    		                 Highlight.Enabled = true
+    		                 Highlight.FillColor = getgenv().Color
+    		                 Highlight.Adornee = v.Character
+    		              end       
+    		           end  
+		                if v.TeamColor == game.Players.LocalPlayer.TeamColor then
+    		              if v.Character and v.Character:FindFirstChild("Highlight") then
+    		                  local Highlight = v.Character:FindFirstChild("Highlight")
+        		              Highlight.Enabled = false
+        		          end    
+    		            end 
+    		          else
+    		              if v.Character and v ~= game.Players.LocalPlayer then
+    		                 if v.Character:FindFirstChild("Highlight") then
+    		                 local Highlight = v.Character:FindFirstChild("Highlight") 
+    		                 Highlight.Enabled = true
+    		                 Highlight.FillColor = getgenv().Color
+    		                 Highlight.Adornee = v.Character
+    		                 else
+    		                 local Highlight = Instance.new("Highlight",v.Character)
+    		                 Highlight.Enabled = true
+    		                 Highlight.FillColor = getgenv().Color
+    		                 Highlight.Adornee = v.Character
+    		              end       
+    		           end    
+		            end       
+		      end    
+		    end  
+		end    
+		end)
+	end    
+})
+espTab:AddColorpicker({
+	Name = "ハイライトの色",
+	Default = Color3.fromRGB(255, 0, 0),
+	Callback = function(Value)
+		getgenv().Color = Value
+	end	  
+})
 
 espTab:AddToggle({
-    Name = "ハイライト",
-    Default = false,
-    Save = true,
-    Callback = function(state)
-        if state then
-            -- ハイライトを有効化
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= lp then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = player.Name
-                    highlight.FillColor = FillColor
-                    highlight.DepthMode = DepthMode
-                    highlight.FillTransparency = FillTransparency
-                    highlight.OutlineColor = OutlineColor
-                    highlight.OutlineTransparency = OutlineTransparency
-                    highlight.Parent = Storage
-
-                    local character = player.Character
-                    if character then
-                        highlight.Adornee = character
-                    end
-
-                    -- キャラクターが変更された場合の処理
-                    connections[player] = player.CharacterAdded:Connect(function(newChar)
-                        highlight.Adornee = newChar
-                    end)
-                end
-            end
-
-            -- 新しいプレイヤーが参加した時の処理
-            connections["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
-                if player ~= lp then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Name = player.Name
-                    highlight.FillColor = FillColor
-                    highlight.DepthMode = DepthMode
-                    highlight.FillTransparency = FillTransparency
-                    highlight.OutlineColor = OutlineColor
-                    highlight.OutlineTransparency = OutlineTransparency
-                    highlight.Parent = Storage
-
-                    player.CharacterAdded:Connect(function(newChar)
-                        highlight.Adornee = newChar
-                    end)
-                end
-            end)
-        else
-            -- ハイライトを無効化
-            for _, highlight in pairs(Storage:GetChildren()) do
-                highlight:Destroy()
-            end
-
-            -- すべての接続を切断
-            for _, connection in pairs(connections) do
-                if connection then
-                    connection:Disconnect()
-                end
-            end
-            connections = {}
-        end
-    end
+	Name = "虹色ハイライト",
+	Default = false,
+	Callback = function(Value)
+		getgenv().Rainbow = Value
+		while wait() do
+		    if not getgenv().Rainbow then return end
+		    getgenv().Color = Color3.new(148, 0, 211)
+		    wait()
+		    getgenv().Color = Color3.new(75, 0, 130)
+		    wait()
+		    getgenv().Color = Color3.new(0, 0, 255)
+		    wait()
+		    getgenv().Color = Color3.new(0, 255, 0)
+		    wait()
+		    getgenv().Color = Color3.new(255, 255, 0)
+		    wait()
+		    getgenv().Color = Color3.new(255, 127, 0)
+		    wait()
+		    getgenv().Color = Color3.new(255, 0 , 0)
+		    wait()
+		end    
+	end    
 })
 
 local espEnabled = false
 local espConnections = {}
 
 espTab:AddToggle({
-    Name = "ESP",
+    Name = "ESP（アイコン）",
     Default = false,
     Callback = function(state)
         espEnabled = state
