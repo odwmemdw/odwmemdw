@@ -1,13 +1,21 @@
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
-local Window = OrionLib:MakeWindow({Name = "SyaseiHub", HidePremium = false, IntoroEnabled = false,IntroText = "oh…yes//♡" ,SaveConfig = true, ConfigFolder = "oh…yes//♡"})
+local Window = OrionLib:MakeWindow({Name = "SyaseiHub", HidePremium = false, IntoroEnabled = false,IntroText = "oh…" ,SaveConfig = true, ConfigFolder = "oh…"})
 
 local replicated_storage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
-
 local camera = workspace.CurrentCamera
 local utility = require(replicated_storage.Modules.Utility)
+local RunService = game:GetService("RunService")
 
 local aimbotEnabled = false
+local fovRadius = 100
+local fovCircle = Drawing.new("Circle")
+
+fovCircle.Color = Color3.fromRGB(255, 255, 255)
+fovCircle.Thickness = 2
+fovCircle.NumSides = 100
+fovCircle.Filled = false
+fovCircle.Visible = true
 
 local function get_players()
     local entities = {}
@@ -27,7 +35,7 @@ local function get_players()
 end
 
 local function get_closest_player()
-    local closest, closest_distance = nil, math.huge
+    local closest, closest_distance = nil, fovRadius
     local character = players.LocalPlayer.Character
 
     if not character then return end
@@ -36,11 +44,13 @@ local function get_closest_player()
         if player == players.LocalPlayer then continue end
         if not player:FindFirstChild("HumanoidRootPart") or not player:FindFirstChild("Head") then continue end
 
-        local position = camera:WorldToViewportPoint(player.HumanoidRootPart.Position)
+        local position, onScreen = camera:WorldToViewportPoint(player.HumanoidRootPart.Position)
+        if not onScreen then continue end
+
         local center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
         local distance = (center - Vector2.new(position.X, position.Y)).Magnitude
 
-        if distance < closest_distance or closest_distance == math.huge then
+        if distance < closest_distance then
             closest = player
             closest_distance = distance
         end
@@ -60,6 +70,12 @@ utility.Raycast = function(...)
     return old(table.unpack(arguments))
 end
 
+RunService.RenderStepped:Connect(function()
+    local screenSize = camera.ViewportSize
+    fovCircle.Position = Vector2.new(screenSize.X / 2, screenSize.Y / 2)
+    fovCircle.Radius = fovRadius
+end)
+
 local aimTab = Window:MakeTab({
     Name = "Main",
     Icon = "",
@@ -71,6 +87,25 @@ aimTab:AddToggle({
     Default = false,
     Callback = function(value)
         aimbotEnabled = value
+    end
+})
+
+aimTab:AddSlider({
+    Name = "Range",
+    Min = 50,
+    Max = 700,
+    Default = 100,
+    Increment = 10,
+    Callback = function(value)
+        fovRadius = value
+    end
+})
+
+aimTab:AddToggle({
+    Name = "Silent aim range",
+    Default = true,
+    Callback = function(value)
+        fovCircle.Visible = value
     end
 })
 
@@ -506,4 +541,5 @@ teleportTab:AddToggle({
         end
     end
 })
+
 OrionLib:Init()
