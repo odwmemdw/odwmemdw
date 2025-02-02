@@ -103,7 +103,7 @@ aimTab:AddSlider({
 
 aimTab:AddToggle({
     Name = "Silent aim range",
-    Default = true,
+    Default = false,
     Callback = function(value)
         fovCircle.Visible = value
     end
