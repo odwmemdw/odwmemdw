@@ -1,3 +1,15 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Anti-Kick/main/Anti-Kick.lua"))()
+
+
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
+local localPlayer = Players.LocalPlayer
+
+
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
 local Window = OrionLib:MakeWindow({Name = "SyaseiHub", HidePremium = false, IntoroEnabled = false,IntroText = "oh…" ,SaveConfig = true, ConfigFolder = "oh…"})
 
@@ -5,7 +17,6 @@ local replicated_storage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
 local camera = workspace.CurrentCamera
 local utility = require(replicated_storage.Modules.Utility)
-local RunService = game:GetService("RunService")
 
 local aimbotEnabled = false
 local fovRadius = 100
@@ -116,8 +127,6 @@ local maxDistance = 50
 local maxTransparency = 0.1
 local teamCheck = false
 
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 local Cam = workspace.CurrentCamera
 local FOVring = Drawing.new("Circle")
 
@@ -354,9 +363,6 @@ end)
 local settings = {
     enabled = false,
 }
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local espObjects = {}
 local espConnections = {}
 
@@ -479,13 +485,10 @@ espTab:AddToggle({
     end
 })
 
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-
 local playerTab = Window:MakeTab({
-      Name = "Character",
-      Icon = "",
-      PremiumOnly = false
+  Name = "Player", 
+  Icon =  "",
+  PremiumOnly = false
 })
 
 local ToggleActive = false  
@@ -500,9 +503,9 @@ local Toggle = playerTab:AddToggle({
 
  playerTab:AddSlider({
     Name = "speed",
-    Min = 50,
-    Max = 200,
-    Default = 5,
+    Min = 30,
+    Max = 70,
+    Default = 30,
     Color = Color3.fromRGB(255,255,255),
     Increment = 1,
     ValueName = "speed",
@@ -549,7 +552,7 @@ local Plr = Players.LocalPlayer
 local Clipon = false
 local SteppedConnection
 playerTab:AddToggle({
-    Name = "ノークリップ",
+    Name = "Noclip",
     Default = false,
     Callback = function(value)
         Clipon = value
@@ -574,9 +577,6 @@ playerTab:AddToggle({
     end
 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local localPlayer = Players.LocalPlayer
 
 local teleporting = false
 
