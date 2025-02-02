@@ -95,6 +95,7 @@ aimTab:AddSlider({
     Min = 50,
     Max = 700,
     Default = 100,
+    Color = Color3.fromRGB(255,255,255)
     Increment = 10,
     Callback = function(value)
         fovRadius = value
@@ -477,6 +478,96 @@ espTab:AddToggle({
         end
     end
 })
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+local ToggleActive = false  
+
+local Toggle = playerTab:AddToggle({
+    Name = "Walk speed",
+    Default = false,
+    Callback = function(state)
+        ToggleActive = state
+    end
+})
+
+ playerTab:AddSlider({
+    Name = "speed",
+    Min = 50,
+    Max = 200,
+    Default = 5,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "speed",
+    Callback = function(speed)
+        HackedWalkSpeed = speed
+
+        local Plrs = game:GetService("Players")
+        local MyPlr = Plrs.LocalPlayer
+        
+      
+        local function setWalkSpeed(Humanoid)
+            if ToggleActive then 
+                Humanoid.WalkSpeed = HackedWalkSpeed
+            end
+        end
+
+     
+        local function updateCharacter(Char)
+            local Humanoid = Char:WaitForChild("Humanoid")
+            setWalkSpeed(Humanoid)
+
+         
+            while true do
+                wait() 
+                if not ToggleActive then break end  
+                setWalkSpeed(Humanoid) 
+            end
+
+            Humanoid.Changed:connect(function()
+                setWalkSpeed(Humanoid)
+            end)
+        end
+
+     
+        if MyPlr.Character then
+            updateCharacter(MyPlr.Character)
+        end
+        
+        MyPlr.CharacterAdded:connect(updateCharacter)
+    end
+})
+
+local Plr = Players.LocalPlayer
+local Clipon = false
+local SteppedConnection
+playerTab:AddToggle({
+    Name = "ノークリップ",
+    Default = false,
+    Callback = function(value)
+        Clipon = value
+        if Clipon then
+            SteppedConnection = RunService.Stepped:Connect(function()
+                for _, obj in pairs(Workspace:GetChildren()) do
+                    if obj.Name == Plr.Name then
+                        for _, part in pairs(obj:GetChildren()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                    end
+                end
+            end)
+        else
+            if SteppedConnection then
+                SteppedConnection:Disconnect()
+                SteppedConnection = nil
+            end
+        end
+    end
+})
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
