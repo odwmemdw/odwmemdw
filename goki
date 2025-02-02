@@ -1,10 +1,3 @@
-
-
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local localPlayer = Players.LocalPlayer
-
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
 local Window = OrionLib:MakeWindow({Name = "SyaseiHub", HidePremium = false, IntoroEnabled = false,IntroText = "oh…" ,SaveConfig = true, ConfigFolder = "oh…"})
 
@@ -110,7 +103,7 @@ aimTab:AddSlider({
 
 aimTab:AddToggle({
     Name = "Silent aim range",
-    Default = false,
+    Default = true,
     Callback = function(value)
         fovCircle.Visible = value
     end
@@ -361,6 +354,8 @@ local settings = {
     enabled = false,
 }
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local espObjects = {}
 local espConnections = {}
 
@@ -482,98 +477,9 @@ espTab:AddToggle({
         end
     end
 })
-
-local playerTab = Window:MakeTab({
-Name = "Player", 
-Icon =  "", 
-PremiumOnly = false
-})
-
-local ToggleActive = false  
-
-local Toggle = playerTab:AddToggle({
-    Name = "Walk speed",
-    Default = false,
-    Callback = function(state)
-        ToggleActive = state
-    end
-})
-
-playerTab:AddSlider({
-    Name = "speed",
-    Min = 50,
-    Max = 150,
-    Default = 50,
-    Increment = 1,
-    ValueName = "speed",
-    Callback = function(speed)
-        HackedWalkSpeed = speed
-
-        local Plrs = game:GetService("Players")
-        local MyPlr = Plrs.LocalPlayer
-        
-      
-        local function setWalkSpeed(Humanoid)
-            if ToggleActive then 
-                Humanoid.WalkSpeed = HackedWalkSpeed
-            end
-        end
-
-     
-        local function updateCharacter(Char)
-            local Humanoid = Char:WaitForChild("Humanoid")
-            setWalkSpeed(Humanoid)
-
-         
-            while true do
-                wait(0) 
-                if not ToggleActive then break end  
-                setWalkSpeed(Humanoid) 
-            end
-
-            Humanoid.Changed:connect(function()
-                setWalkSpeed(Humanoid)
-            end)
-        end
-
-     
-        if MyPlr.Character then
-            updateCharacter(MyPlr.Character)
-        end
-        
-        MyPlr.CharacterAdded:connect(updateCharacter)
-    end
-})
-
-local Plr = Players.LocalPlayer
-local Clipon = false
-local SteppedConnection
-playerTab:AddToggle({
-    Name = "ノークリップ",
-    Default = false,
-    Callback = function(value)
-        Clipon = value
-        if Clipon then
-            SteppedConnection = RunService.Stepped:Connect(function()
-                for _, obj in pairs(Workspace:GetChildren()) do
-                    if obj.Name == Plr.Name then
-                        for _, part in pairs(obj:GetChildren()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = false
-                            end
-                        end
-                    end
-                end
-            end)
-        else
-            if SteppedConnection then
-                SteppedConnection:Disconnect()
-                SteppedConnection = nil
-            end
-        end
-    end
-})
-
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
 
 local teleporting = false
 
