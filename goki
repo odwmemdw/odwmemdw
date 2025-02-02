@@ -482,6 +482,12 @@ espTab:AddToggle({
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
+local playerTab = Window:MakeTab({
+      Name = "Character",
+      Icon = "",
+      PremiumOnly = false
+})
+
 local ToggleActive = false  
 
 local Toggle = playerTab:AddToggle({
