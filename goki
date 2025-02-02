@@ -548,6 +548,19 @@ local Toggle = playerTab:AddToggle({
     end
 })
 
+local InfiniteJumpEnabled = false
+playerTab:AddToggle({
+        Name = "無限ジャンプ",
+        Default = false,
+        Callback = function(Value)
+            InfiniteJumpEnabled = Value
+        end
+})
+game:GetService("UserInputService").JumpRequest:Connect(function()
+        if InfiniteJumpEnabled and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+     end
+end)
 local Plr = Players.LocalPlayer
 local Clipon = false
 local SteppedConnection
