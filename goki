@@ -10,7 +10,7 @@ local Debris = game:GetService("Debris")
 local localPlayer = Players.LocalPlayer
 
 
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/odwmemdw/odwmemdw/refs/heads/main/orionaahah')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/main/Orion%20X')))()
 local Window = OrionLib:MakeWindow({Name = "SyaseiHub", HidePremium = false, IntoroEnabled = false,IntroText = "oh…" ,SaveConfig = true, ConfigFolder = "oh…"})
 
 local replicated_storage = game:GetService("ReplicatedStorage")
