@@ -506,7 +506,7 @@ local Toggle = playerTab:AddToggle({
     Min = 30,
     Max = 70,
     Default = 30,
-    Color = Color3.fromRGB(255,255,255),
+    Color = Color3.fromRGB(200,200,30),
     Increment = 1,
     ValueName = "speed",
     Callback = function(speed)
@@ -547,6 +547,24 @@ local Toggle = playerTab:AddToggle({
         MyPlr.CharacterAdded:connect(updateCharacter)
     end
 })
+
+local InfiniteJumpEnabled = false
+
+playerTab:AddToggle({
+    Name = "Infinite jump",
+    Default = false,
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
+    end
+})
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJumpEnabled then
+        local humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState("Jumping")
+        end
+    end
+end)
 
 local Plr = Players.LocalPlayer
 local Clipon = false
