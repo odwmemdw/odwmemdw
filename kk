@@ -2370,63 +2370,78 @@ local espTab = Window:MakeTab({
       Icon = "",
       PremiumOnly = false
 })
+local highlightInstances = {}
+local rainbowActive = false
 
 espTab:AddToggle({
     Name = "ハイライト",
     Default = false,
-    Callback = function(Value)
-        getgenv().esp = Value
-        getgenv().Rainbow = Value
+    Callback = function(value)
+        rainbowActive = value
 
-        spawn(function()
-            while getgenv().esp do
-                wait()
+        if rainbowActive then
 
-                if getgenv().Rainbow then
-                    local colors = {
-                        Color3.fromRGB(148, 0, 211),
-                        Color3.fromRGB(75, 0, 130),
-                        Color3.fromRGB(0, 0, 255),
-                        Color3.fromRGB(0, 255, 0),
-                        Color3.fromRGB(255, 255, 0),
-                        Color3.fromRGB(255, 127, 0),
-                        Color3.fromRGB(255, 0, 0)
-                    }
-                    for _, color in ipairs(colors) do
-                        if not getgenv().esp then break end
-                        getgenv().Color = color
-                        wait(0.1)
-                    end
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= Players.LocalPlayer and player.Character then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Parent = player.Character
+                    highlight.FillTransparency = 0.5
+                    highlight.OutlineTransparency = 1
+                    highlightInstances[player] = highlight
                 end
+            end
 
-                for _, v in pairs(game.Players:GetChildren()) do
-                    if v ~= game.Players.LocalPlayer and v.Character then
-                        local Highlight = v.Character:FindFirstChild("Highlight")
+            Players.PlayerAdded:Connect(function(player)
+                player.CharacterAdded:Connect(function()
+                    if rainbowActive then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Parent = player.Character
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 1
+                        highlightInstances[player] = highlight
+                    end
+                end)
+            end)
 
-                        if getgenv().esp then
-                            if not Highlight then
-                                Highlight = Instance.new("Highlight", v.Character)
-                            end
-                            Highlight.Enabled = true
-                            Highlight.FillColor = getgenv().Color or Color3.fromRGB(255, 0, 0) -- デフォルト赤
-                            Highlight.Adornee = v.Character
-                        else
-                            if Highlight then
-                                Highlight.Enabled = false
-                            end
+            for _, player in pairs(Players:GetPlayers()) do
+                player.CharacterAdded:Connect(function()
+                    if rainbowActive then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Parent = player.Character
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 1
+                        highlightInstances[player] = highlight
+                    end
+                end)
+            end
+
+            spawn(function()
+                local hue = 0
+                while rainbowActive do
+                    hue = (hue + 0.02) % 1
+                    local color = Color3.fromHSV(hue, 1, 1)
+                    for _, highlight in pairs(highlightInstances) do
+                        if highlight then
+                            highlight.FillColor = color
+                            highlight.OutlineColor = color
                         end
                     end
+                    task.wait(0.02)
                 end
-            end
+            end)
 
-            for _, v in pairs(game.Players:GetChildren()) do
-                if v.Character and v.Character:FindFirstChild("Highlight") then
-                    v.Character.Highlight.Enabled = false
+        else
+        
+            for _, highlight in pairs(highlightInstances) do
+                if highlight then
+                    highlight:Destroy()
                 end
             end
-        end)
+            highlightInstances = {}
+        end
     end
 })
+
 
 
 local espEnabled = false
