@@ -2371,92 +2371,63 @@ local espTab = Window:MakeTab({
       PremiumOnly = false
 })
 
-getgenv().esp = false
-getgenv().teamcheck = false
-getgenv().Color = Color3.fromRGB(255, 0, 0)
 espTab:AddToggle({
-	Name = "ハイライト",
-	Default = false,
-	Callback = function(Value)
-		getgenv().esp = Value
-		spawn(function()
-		while wait() do
-		    if not getgenv().esp then
-		          for i,v in pairs(game.Players:GetChildren()) do
-		              if v.Character and v.Character:FindFirstChild("Highlight") then
-		                  local Highlight = v.Character:FindFirstChild("Highlight")
-		                  Highlight.Enabled = false
-    		      end
-		      end 
-		      else
-		          for i,v in pairs(game.Players:GetChildren()) do
-		             if getgenv().teamcheck == true then
-		               if v.Character and v ~= game.Players.LocalPlayer and v.TeamColor ~= game.Players.LocalPlayer.TeamColor then
-    		                 if v.Character:FindFirstChild("Highlight") then
-    		                 local Highlight = v.Character:FindFirstChild("Highlight") 
-    		                 Highlight.Enabled = true
-    		                 Highlight.FillColor = getgenv().Color
-    		                 Highlight.Adornee = v.Character
-    		                 else
-    		                 local Highlight = Instance.new("Highlight",v.Character)
-    		                 Highlight.Enabled = true
-    		                 Highlight.FillColor = getgenv().Color
-    		                 Highlight.Adornee = v.Character
-    		              end       
-    		           end  
-		                if v.TeamColor == game.Players.LocalPlayer.TeamColor then
-    		              if v.Character and v.Character:FindFirstChild("Highlight") then
-    		                  local Highlight = v.Character:FindFirstChild("Highlight")
-        		              Highlight.Enabled = false
-        		          end    
-    		            end 
-    		          else
-    		              if v.Character and v ~= game.Players.LocalPlayer then
-    		                 if v.Character:FindFirstChild("Highlight") then
-    		                 local Highlight = v.Character:FindFirstChild("Highlight") 
-    		                 Highlight.Enabled = true
-    		                 Highlight.FillColor = getgenv().Color
-    		                 Highlight.Adornee = v.Character
-    		                 else
-    		                 local Highlight = Instance.new("Highlight",v.Character)
-    		                 Highlight.Enabled = true
-    		                 Highlight.FillColor = getgenv().Color
-    		                 Highlight.Adornee = v.Character
-    		              end       
-    		           end    
-		            end       
-		      end    
-		    end  
-		end    
-		end)
-	end    
+    Name = "ハイライト",
+    Default = false,
+    Callback = function(Value)
+        getgenv().esp = Value
+        getgenv().Rainbow = Value
+
+        spawn(function()
+            while getgenv().esp do
+                wait()
+
+                if getgenv().Rainbow then
+                    local colors = {
+                        Color3.fromRGB(148, 0, 211),
+                        Color3.fromRGB(75, 0, 130),
+                        Color3.fromRGB(0, 0, 255),
+                        Color3.fromRGB(0, 255, 0),
+                        Color3.fromRGB(255, 255, 0),
+                        Color3.fromRGB(255, 127, 0),
+                        Color3.fromRGB(255, 0, 0)
+                    }
+                    for _, color in ipairs(colors) do
+                        if not getgenv().esp then break end
+                        getgenv().Color = color
+                        wait(0.1)
+                    end
+                end
+
+                for _, v in pairs(game.Players:GetChildren()) do
+                    if v ~= game.Players.LocalPlayer and v.Character then
+                        local Highlight = v.Character:FindFirstChild("Highlight")
+
+                        if getgenv().esp then
+                            if not Highlight then
+                                Highlight = Instance.new("Highlight", v.Character)
+                            end
+                            Highlight.Enabled = true
+                            Highlight.FillColor = getgenv().Color or Color3.fromRGB(255, 0, 0) -- デフォルト赤
+                            Highlight.Adornee = v.Character
+                        else
+                            if Highlight then
+                                Highlight.Enabled = false
+                            end
+                        end
+                    end
+                end
+            end
+
+            for _, v in pairs(game.Players:GetChildren()) do
+                if v.Character and v.Character:FindFirstChild("Highlight") then
+                    v.Character.Highlight.Enabled = false
+                end
+            end
+        end)
+    end
 })
 
-
-espTab:AddToggle({
-	Name = "虹色ハイライト",
-	Default = false,
-	Callback = function(Value)
-		getgenv().Rainbow = Value
-		while wait() do
-		    if not getgenv().Rainbow then return end
-		    getgenv().Color = Color3.new(148, 0, 211)
-		    wait()
-		    getgenv().Color = Color3.new(75, 0, 130)
-		    wait()
-		    getgenv().Color = Color3.new(0, 0, 255)
-		    wait()
-		    getgenv().Color = Color3.new(0, 255, 0)
-		    wait()
-		    getgenv().Color = Color3.new(255, 255, 0)
-		    wait()
-		    getgenv().Color = Color3.new(255, 127, 0)
-		    wait()
-		    getgenv().Color = Color3.new(255, 0 , 0)
-		    wait()
-		end    
-	end    
-})
 
 local espEnabled = false
 local espConnections = {}
