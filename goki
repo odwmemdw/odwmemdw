@@ -498,12 +498,11 @@ local Toggle = playerTab:AddToggle({
 
  playerTab:AddSlider({
     Name = "speed",
-    Min = 30,
-    Max = 70,
-    Default = 30,
+    Min = 50,
+    Max = 500,
+    Default = 50,
     Color = Color3.fromRGB(200,200,30),
-    Increment = 1,
-    ValueName = "speed",
+    Increment = 10,
     Callback = function(speed)
         HackedWalkSpeed = speed
 
@@ -542,6 +541,58 @@ local Toggle = playerTab:AddToggle({
         MyPlr.CharacterAdded:connect(updateCharacter)
     end
 })
+
+local ToggleActive = false
+local Toggle =  playerTab:AddToggle({
+    Name = "Jump power",
+    Default = false,
+    Callback = function(state)
+        ToggleActive = state
+    end
+})
+
+playerTab:AddSlider({
+    Name = "power",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Color = Color3.fromRGB(150,122,240),
+    Increment = 10,
+    Callback = function(jumpPower)
+        HackedJumpPower = jumpPower
+
+        local Plrs = game:GetService("Players")
+        local MyPlr = Plrs.LocalPlayer
+        
+        local function setJumpPower(Humanoid)
+            if ToggleActive then 
+                Humanoid.JumpPower = HackedJumpPower
+            end
+        end
+
+        local function updateCharacter(Char)
+            local Humanoid = Char:WaitForChild("Humanoid")
+            setJumpPower(Humanoid)
+
+            while true do
+                wait(0) 
+                if not ToggleActive then break end  
+                setJumpPower(Humanoid) 
+            end
+
+            Humanoid.Changed:connect(function()
+                setJumpPower(Humanoid)
+            end)
+        end
+
+        if MyPlr.Character then
+            updateCharacter(MyPlr.Character)
+        end
+        
+        MyPlr.CharacterAdded:connect(updateCharacter)
+    end
+})
+
 
 local InfiniteJumpEnabled = false
 
