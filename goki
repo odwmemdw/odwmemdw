@@ -106,7 +106,7 @@ aimTab:AddSlider({
     Min = 50,
     Max = 700,
     Default = 100,
-    Color = Color3.fromRGB(255,255,255),
+    Color = Color3.fromRGB(200,200,30),
     Increment = 10,
     Callback = function(value)
         fovRadius = value
