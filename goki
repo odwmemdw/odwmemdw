@@ -499,7 +499,7 @@ local Toggle = playerTab:AddToggle({
  playerTab:AddSlider({
     Name = "speed",
     Min = 50,
-    Max = 500,
+    Max = 200,
     Default = 50,
     Color = Color3.fromRGB(200,200,30),
     Increment = 10,
@@ -554,9 +554,9 @@ local Toggle =  playerTab:AddToggle({
 playerTab:AddSlider({
     Name = "power",
     Min = 50,
-    Max = 500,
+    Max = 100,
     Default = 50,
-    Color = Color3.fromRGB(150,122,240),
+    Color = Color3.fromRGB(200,200,30),
     Increment = 10,
     Callback = function(jumpPower)
         HackedJumpPower = jumpPower
