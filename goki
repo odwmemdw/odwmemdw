@@ -217,75 +217,70 @@ local RunService = game:GetService("RunService")
 local highlightInstances = {}
 local rainbowActive = false
 
-local function applyHighlight(player)
-    if player.Character and not highlightInstances[player] then
-        local highlight = Instance.new("Highlight")
-        highlight.Parent = player.Character
-        highlight.FillTransparency = 0.5
-        highlight.OutlineTransparency = 0
-        highlightInstances[player] = highlight
-    end
-end
-
-local function highlightAllPlayers()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= Players.LocalPlayer then
-            applyHighlight(player)
-        end
-    end
-end
-
-local function removeHighlights()
-    for _, highlight in pairs(highlightInstances) do
-        if highlight then
-            highlight:Destroy()
-        end
-    end
-    highlightInstances = {}
-end
-
-local function startRainbowEffect()
-    rainbowActive = true
-    local hue = 0
-
-    while rainbowActive do
-        hue = (hue + 0.02) % 1 
-
-        local color = Color3.fromHSV(hue, 1, 1)
-
-        for _, highlight in pairs(highlightInstances) do
-            if highlight then
-                highlight.FillColor = color
-                highlight.OutlineColor = color
-            end
-        end
-
-        task.wait(0.02)
-    end
-end
-
- local function toggleRainbowHighlight(state)
-    if state then
-        highlightAllPlayers()
-        startRainbowEffect()
-    else
-        rainbowActive = false
-        removeHighlights()
-    end
-end
-
-Players.PlayerAdded:Connect(function(player)
-    if rainbowActive then
-        task.wait(1)
-        applyHighlight(player)
-    end
-end)
-
 espTab:AddToggle({
     Name = "Highlights",
     Default = false,
     Callback = function(value)
-        toggleRainbowHighlight(value)
+        rainbowActive = value
+
+        if rainbowActive then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= Players.LocalPlayer and player.Character then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Parent = player.Character
+                    highlight.FillTransparency = 0.5
+                    highlight.OutlineTransparency = 1
+                    highlightInstances[player] = highlight
+                end
+            end
+
+            Players.PlayerAdded:Connect(function(player)
+                player.CharacterAdded:Connect(function()
+                    if rainbowActive then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Parent = player.Character
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 1
+                        highlightInstances[player] = highlight
+                    end
+                end)
+            end)
+
+            for _, player in pairs(Players:GetPlayers()) do
+                player.CharacterAdded:Connect(function()
+                    if rainbowActive then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Parent = player.Character
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 1
+                        highlightInstances[player] = highlight
+                    end
+                end)
+            end
+
+            spawn(function()
+                local hue = 0
+                while rainbowActive do
+                    hue = (hue + 0.02) % 1
+                    local color = Color3.fromHSV(hue, 1, 1)
+                    for _, highlight in pairs(highlightInstances) do
+                        if highlight then
+                            highlight.FillColor = color
+                            highlight.OutlineColor = color
+                        end
+                    end
+                    task.wait(0.02)
+                end
+            end)
+
+        else
+            for _, highlight in pairs(highlightInstances) do
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+            highlightInstances = {}
+        end
     end
 })
 
