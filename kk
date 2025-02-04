@@ -2431,13 +2431,7 @@ espTab:AddToggle({
 		end)
 	end    
 })
-espTab:AddColorpicker({
-	Name = "ハイライトの色",
-	Default = Color3.fromRGB(255, 0, 0),
-	Callback = function(Value)
-		getgenv().Color = Value
-	end	  
-})
+
 
 espTab:AddToggle({
 	Name = "虹色ハイライト",
