@@ -94,7 +94,7 @@ local aimTab = Window:MakeTab({
 })
 
 aimTab:AddToggle({
-    Name = "Silent aim",
+    Name = "Silent Aim",
     Default = false,
     Callback = function(value)
         aimbotEnabled = value
@@ -114,7 +114,7 @@ aimTab:AddSlider({
 })
 
 aimTab:AddToggle({
-    Name = "Silent aim range",
+    Name = "Silent Aim Range",
     Default = false,
     Callback = function(value)
         fovCircle.Visible = value
@@ -122,10 +122,14 @@ aimTab:AddToggle({
 })
 
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
 local fov = 100
 local maxDistance = 50
 local maxTransparency = 0.1
 local teamCheck = false
+local aimStrength = 1
 
 local Cam = workspace.CurrentCamera
 local FOVring = Drawing.new("Circle")
@@ -142,8 +146,10 @@ local function updateDrawings()
 end
 
 local function lookAt(target)
-    local lookVector = (target - Cam.CFrame.Position).unit
-    Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + lookVector)
+    local currentLook = Cam.CFrame.LookVector
+    local newLook = (target - Cam.CFrame.Position).unit
+    local blendedLook = currentLook:Lerp(newLook, aimStrength) -- エイム強度に応じてスムーズに追従
+    Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + blendedLook)
 end
 
 local function calculateTransparency(distance)
@@ -178,7 +184,7 @@ local function getClosestPlayerInFOV(trg_part)
 end
 
 aimTab:AddToggle({
-    Name = "Auto aim",
+    Name = "Auto Aim",
     Default = false,
     Callback = function(state)
         if state then
@@ -202,6 +208,18 @@ aimTab:AddToggle({
             RunService:UnbindFromRenderStep("AutoAim")
             FOVring.Transparency = maxTransparency
         end
+    end
+})
+
+aimTab:AddSlider({
+    Name = "Aim Strength",
+    Min = 0,
+    Max = 1,
+    Default = 1,
+    Color = Color3.fromRGB(200,200,30),
+    Increment = 0.01,
+    Callback = function(value)
+        aimStrength = value
     end
 })
 
