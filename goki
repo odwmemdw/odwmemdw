@@ -129,7 +129,7 @@ local fov = 100
 local maxDistance = 50
 local maxTransparency = 0.1
 local teamCheck = false
-local aimStrength = 1
+local aimStrength = 5
 
 local Cam = workspace.CurrentCamera
 local FOVring = Drawing.new("Circle")
@@ -148,7 +148,7 @@ end
 local function lookAt(target)
     local currentLook = Cam.CFrame.LookVector
     local newLook = (target - Cam.CFrame.Position).unit
-    local blendedLook = currentLook:Lerp(newLook, aimStrength) -- エイム強度に応じてスムーズに追従
+    local blendedLook = currentLook:Lerp(newLook, aimStrength)
     Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + blendedLook)
 end
 
@@ -217,7 +217,7 @@ aimTab:AddSlider({
     Max = 1,
     Default = 1,
     Color = Color3.fromRGB(200,200,30),
-    Increment = 0.01,
+    Increment = 0.1,
     Callback = function(value)
         aimStrength = value
     end
