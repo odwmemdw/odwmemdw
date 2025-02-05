@@ -214,7 +214,7 @@ aimTab:AddToggle({
 aimTab:AddSlider({
     Name = "Aim Strength",
     Min = 0,
-    Max = 1,
+    Max = 5,
     Default = 5,
     Color = Color3.fromRGB(200,200,30),
     Increment = 0.1,
