@@ -129,7 +129,7 @@ local fov = 100
 local maxDistance = 50
 local maxTransparency = 0.1
 local teamCheck = false
-local aimStrength = 5
+local aimStrength = 1
 
 local Cam = workspace.CurrentCamera
 local FOVring = Drawing.new("Circle")
@@ -148,7 +148,9 @@ end
 local function lookAt(target)
     local currentLook = Cam.CFrame.LookVector
     local newLook = (target - Cam.CFrame.Position).unit
-    local blendedLook = currentLook:Lerp(newLook, aimStrength)
+    local blendFactor = math.clamp(aimStrength / 5, 0.1, 1)
+
+    local blendedLook = currentLook:Lerp(newLook, blendFactor)
     Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + blendedLook)
 end
 
@@ -215,13 +217,13 @@ aimTab:AddSlider({
     Name = "Aim Strength",
     Min = 0,
     Max = 5,
-    Default = 5,
-    Color = Color3.fromRGB(200,200,30),
-    Increment = 0.1,
+    Default = 1,
+    Increment = 0.5,
     Callback = function(value)
         aimStrength = value
     end
 })
+
 
 local espTab = Window:MakeTab({
       Name = "ESP",
