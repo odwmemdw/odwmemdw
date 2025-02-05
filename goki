@@ -218,6 +218,7 @@ aimTab:AddSlider({
     Min = 0,
     Max = 5,
     Default = 1,
+    Color = Color3.fromRGB(200,200,30),
     Increment = 0.5,
     Callback = function(value)
         aimStrength = value
