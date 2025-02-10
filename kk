@@ -281,7 +281,7 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddToggle({
-    Name = "上昇掴み",
+    Name = "Rise Grab",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
     Save = true,
@@ -333,9 +333,8 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddToggle({
-    Name = "毒掴み",
+    Name = "Poison Grab",
     Default = false,
-    Save = true,
     Flag = "PoisonGrab",
     Callback = function(enabled)
         if enabled then
@@ -383,10 +382,9 @@ GrabTab:AddToggle({
 
 
 GrabTab:AddToggle({
-    Name = "キル掴み",
+    Name = "Kill Grab",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "KillToggle",
     Callback = function(enabled)
         if enabled then
@@ -413,10 +411,9 @@ GrabTab:AddToggle({
 local running = false
 
 GrabTab:AddToggle({
-    Name = "ノークリップ掴み",
+    Name = "Noclip Grab",
     Default = false,
-      Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
+    Color = Color3.fromRGB(0, 255, 0),
     Flag = "NoclipGrab",
     Callback = function(enabled)
         running = enabled
@@ -505,12 +502,12 @@ end
 
 
 local BlobmanTab = Window:MakeTab({
-    Name = "ブロブマンこ",
+    Name = "Blobman",
     Icon = "",
     PremiumOnly = false
 })
 BlobmanTab:AddDropdown({
-    Name = "プレイヤーを選ぶ",
+    Name = "Select Player",
     Default = "",
     Options = getPlayerList(),
     Callback = function(selected)
@@ -528,7 +525,7 @@ BlobmanTab:AddDropdown({
 })
 
 BlobmanTab:AddButton({
-    Name = "掴む",
+    Name = "Bling",
     Callback = function()
         if not selectedPlayer then
             print("プレイヤーが選択されていません。")
@@ -544,12 +541,10 @@ BlobmanTab:AddButton({
 })
 
 
-
-
 _G.BlobmanDelay = 0
 local blobmanCoroutine = nil
 local blobman = nil
-local handSelection = "両手"
+local handSelection = "Both Hands"
 local excludeFriends = false
 local friendCache = {}
 local blobmanCoroutine
@@ -587,7 +582,7 @@ local function blobGrabPlayer(player, blobman)
             end)
         end
 
-        if handSelection == "両手" or handSelection == "左手" then
+        if handSelection == "Both Hands" or handSelection == "Left Hand" then
             task.spawn(function()
                 local argsLeft = {
                     blobman:FindFirstChild("LeftDetector"),
@@ -598,7 +593,7 @@ local function blobGrabPlayer(player, blobman)
             end)
         end
 
-        if handSelection == "両手" or handSelection == "右手" then
+        if handSelection == "Both Hands" or handSelection == "Right Hand" then
             task.spawn(function()
                 local argsRight = {
                     blobman:FindFirstChild("RightDetector"),
@@ -704,7 +699,7 @@ local function toggleAutoBlobman(enabled)
     end
 end
 local RunService = game:GetService("RunService")
-local ascendSpeed = 999999
+local ascendSpeed = 777777
 local ascending = false
 local heartbeatConnection
 
@@ -759,13 +754,13 @@ end
 
 
 local Section = BlobmanTab:AddSection({
-	Name = "オール"
+	Name = "Destroy Server"
 })
 
 BlobmanTab:AddDropdown({
-    Name = "選ぶ",
-    Default = "両手",
-    Options = {"両手", "左手", "右手"},
+    Name = "Select",
+    Default = "Both Hands",
+    Options = {"Both Hands", "Left Hand", "Right Hand"},
     Callback = function(selected)
         handSelection = selected
         print("選択した手:", handSelection)
@@ -774,7 +769,7 @@ BlobmanTab:AddDropdown({
 
 
 BlobmanTab:AddToggle({
-    Name = "キックオール",
+    Name = Kick All",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
     Callback = function(enabled)
@@ -811,7 +806,7 @@ BlobmanTab:AddToggle({
 })
 
 BlobmanTab:AddToggle({
-    Name = "ホワイトリストフレンド",
+    Name = "Whitelist Friend",
     Default = false,
     Color = Color3.fromRGB(255, 0, 0),
     Callback = function(enabled)
@@ -851,7 +846,7 @@ updateFriendCache()
 
 
 BlobmanTab:AddToggle({
-    Name = "自動スポーンお座り",
+    Name = "Auto spawn&sit blobman",
     Default = false,
     Save = true,
     Flag = "AutoBlobman",
@@ -861,7 +856,7 @@ BlobmanTab:AddToggle({
 })
 
 BlobmanTab:AddButton({
-    Name = "上昇",
+    Name = "Rise",
     Callback = function()
         if not ascending then
             ascendBlobman()
@@ -875,17 +870,16 @@ BlobmanTab:AddButton({
 
 
 local antiTab = Window:MakeTab({
-    Name = "アンチ",
+    Name = "Anti",
     Icon = "",
     PremiumOnly = false
 })
 
 local isFrozen = false
 antiTab:AddToggle({
-    Name = "自動無敵",
+    Name = "Auto Freeze",
     Color = Color3.fromRGB(255, 165, 0),
     Default = false,
-    Save = true,
     Callback = function(value)
         isFrozen = value
         local player = Players.LocalPlayer
@@ -965,7 +959,7 @@ local CurrentConnection = nil
 local DetectorMonitorConnection = nil
 
 antiTab:AddToggle({
-    Name = "アンチ掴み",
+    Name = "Anti Grab",
     Default = false,
     Callback = function(state)
         toggleState = state
@@ -1048,11 +1042,8 @@ antiTab:AddToggle({
 })
 
 
-
-
-
 antiTab:AddToggle({
-    Name = "アンチ爆発",
+    Name = "Anti Explosion",
     Default = false,
     Color = Color3.fromRGB(255, 165, 0),
     Flag = "AntiExplosion",
@@ -1116,7 +1107,7 @@ local currentKunai = nil
 local kunaiSpawningEnabled = false
 
 antiTab:AddToggle({
-    Name = "アンチキック",
+    Name = "Anti Kick（Kunai）",
     Default = false,
     Callback = function(value)
         kunaiSpawningEnabled = value
@@ -1189,17 +1180,17 @@ local Struggle = CharacterEvents:WaitForChild("Struggle")
 
 local flingStrength = 400
 local targetPosition = Vector3.new(-591, 10, 113)
-local defenseMode = "吹っ飛ばし"
+local defenseMode = "Fling"
 local autoDefendCoroutine = nil
 
 local Section = antiTab:AddSection({
-    Name = "自動反撃"
+    Name = Auto Attacker"
 })
 
 antiTab:AddDropdown({
-    Name = "反撃モード",
-    Default = "ランダム方向",
-    Options = {"吹っ飛ばし", "帰宅", "上昇"},
+    Name = "Select Mode",
+    Default = "Fling",
+    Options = {"Fling", "Go Home", "Rise"},
     Callback = function(value)
         defenseMode = value
         print("Defense mode set to:", defenseMode)
@@ -1207,9 +1198,8 @@ antiTab:AddDropdown({
 })
 
 antiTab:AddToggle({
-    Name = "自動反撃",
+    Name = "Auto Attaker",
     Default = false,
-    Save = true,
     Callback = function(enabled)
         if enabled then
             autoDefendCoroutine = coroutine.create(function()
@@ -1228,7 +1218,7 @@ antiTab:AddToggle({
                                     ReplicatedStorage.CharacterEvents.Struggle:FireServer()
                                     ReplicatedStorage.GrabEvents.SetNetworkOwner:FireServer(humanoidRootPart, humanoidRootPart.CFrame)
 
-                                    if defenseMode == "吹っ飛ばし" then
+                                    if defenseMode == "Fling" then
                                         local randomDirection = Vector3.new(
                                             math.random(-100, 100) / 100, -- X
                                             math.random(50, 100) / 100,  -- Y
@@ -1242,11 +1232,11 @@ antiTab:AddToggle({
                                         Debris:AddItem(velocity, 1)
                                         print("Flinging attacker in random direction:", attacker.Name)
 
-                                    elseif defenseMode == "帰宅" then
+                                    elseif defenseMode == "Go Home" then
                                         humanoidRootPart.CFrame = CFrame.new(targetPosition)
                                         print("Teleported attacker to target position:", attacker.Name)
 
-                                    elseif defenseMode == "上昇" then
+                                    elseif defenseMode == "Rise" then
                                         local velocity = Instance.new("BodyVelocity", humanoidRootPart)
                                         velocity.Name = "UpwardFlingVelocity"
                                         velocity.MaxForce = Vector3.new(0, math.huge, 0)
@@ -1273,7 +1263,7 @@ antiTab:AddToggle({
 })
 
 antiTab:AddSlider({
-    Name = "吹き飛ばす力",
+    Name = "Fling Strength",
     Min = 50,
     Max = 2000,
     Default = flingStrength,
@@ -1288,14 +1278,14 @@ antiTab:AddSlider({
 
 local ToggleActive = false
 local playerTab = Window:MakeTab({
-    	Name = "プレイヤー",
+    	Name = "Player",
     	Icon = "",
     	PremiumOnly = false
 })
 
 local HackedWalkSpeed = 16
 playerTab:AddToggle({
-    Name = "プレイヤー速度",
+    Name = "Walk Speed",
     Default = false,
     Callback = function(state)
         ToggleActive = state
@@ -1303,13 +1293,13 @@ playerTab:AddToggle({
 })
 
 playerTab:AddSlider({
-    Name = "速度",
+    Name = "Speed",
     Min = 16,
     Max = 1000,
     Default = 16,
     Color = Color3.fromRGB(150, 122, 240),
     Increment = 1,
-    ValueName = "速さ",
+    ValueName = "",
     Callback = function(speed)
         HackedWalkSpeed = speed
     end
@@ -1363,7 +1353,7 @@ local function updateCharacter(Char)
 
 
 local Toggle =  playerTab:AddToggle({
-    Name = "プレイヤーのジャンプ力",
+    Name = "Jump Power",
     Default = false,
     Callback = function(state)
         ToggleActive = state
@@ -1371,13 +1361,13 @@ local Toggle =  playerTab:AddToggle({
 })
 
 playerTab:AddSlider({
-    Name = "ジャンプ力",
+    Name = "Power",
     Min = 24,
     Max = 500,
     Default = 24,
     Color = Color3.fromRGB(150,122,240),
     Increment = 1,
-    ValueName = "高さ",
+    ValueName = "",
     Callback = function(jumpPower)
         HackedJumpPower = jumpPower
 
@@ -1415,7 +1405,7 @@ playerTab:AddSlider({
 
 local InfiniteJumpEnabled = false
 playerTab:AddToggle({
-        Name = "無限ジャンプ",
+        Name = Infinite Jump",
         Default = false,
         Callback = function(Value)
             InfiniteJumpEnabled = Value
@@ -1431,7 +1421,7 @@ local Plr = Players.LocalPlayer
 local Clipon = false
 local SteppedConnection
 playerTab:AddToggle({
-    Name = "ノークリップ",
+    Name = Noclip",
     Default = false,
     Callback = function(value)
         Clipon = value
@@ -1457,7 +1447,7 @@ playerTab:AddToggle({
 })
 
 playerTab:AddButton({
-    Name = "3人称",
+    Name = "Third Person",
     Callback = function()
 local player = game.Players.LocalPlayer
 if player then
@@ -1475,11 +1465,11 @@ local animationEnabled = false
 local animation
 
 local Section = playerTab:AddSection({
-    Name = "アニメーション"
+    Name = "Animation"
 })
 
 playerTab:AddToggle({
-    Name = "燃えるアニメーション",
+    Name = "Fire Animation",
     Default = false,
     Callback = function(value)
         animationEnabled = value
@@ -1519,7 +1509,7 @@ playerTab:AddToggle({
 
 
 playerTab:AddToggle({
-    Name = "燃えるアニメーション2",
+    Name = "Fire Animation2",
     Default = false,
     Callback = function(value)
         animationEnabled = value
@@ -1568,13 +1558,13 @@ local config = {
 local toysFolder = Workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
 
 local MainTab = Window:MakeTab({
-    Name = "爆発系",
+    Name = "Explosion",
     Icon = "",
     PremiumOnly = false
 })
 
 MainTab:AddDropdown({
-    Name = "ターゲット",
+    Name = "Select Player",
     Default = "",
     Options = (function()
         local playerList = {}
@@ -1608,7 +1598,7 @@ task.spawn(function()
 end)
 
 MainTab:AddToggle({
-    Name = "自動無敵突破",
+    Name = "Auto Unfreeze",
     Default = false,
     Callback = function(enabled)
         config.AutoBallSnowballEnabled = enabled
@@ -1704,13 +1694,13 @@ local parts = {}
 end
 
 local AuraTab = Window:MakeTab({
-    Name = "オーラ",
+    Name = "Grab Aura",
     PremiumOnly = false
 })
 
 
 AuraTab:AddToggle({
-    Name = "掴むオーラ",
+    Name = "Grab Aura",
     Color = Color3.fromRGB(0, 255, 0),
     Default = false,
     Flag = "FlingAura",
@@ -1758,7 +1748,7 @@ AuraTab:AddToggle({
 })
 
 AuraTab:AddToggle({
-    Name = "上昇オーラ",
+    Name = "Rise Aura",
     Color = Color3.fromRGB(0, 255, 0),
     Default = false,
     Flag = "skyAura",
@@ -1812,9 +1802,8 @@ AuraTab:AddToggle({
 local moveSpeed = 50
 local auraCoroutine = nil
 AuraTab:AddToggle({
-    Name = "引き寄せオーラ",
+    Name = "Attraction Aura",
     Default = false,
-    Save = true,
     Callback = function(enabled)
         if enabled then
             auraCoroutine = coroutine.create(function()
@@ -1878,9 +1867,8 @@ AuraTab:AddToggle({
 local targetPosition = Vector3.new(-591, 10, 113)
 local auraCoroutine = nil
 AuraTab:AddToggle({
-    Name = "強制帰宅オーラ",
+    Name = "Teleport to home Aura",
     Default = false,
-    Save = true,
     Callback = function(enabled)
         if enabled then
             auraCoroutine = coroutine.create(function()
@@ -1890,7 +1878,6 @@ AuraTab:AddToggle({
                         if character and character:FindFirstChild("HumanoidRootPart") then
                             local humanoidRootPart = character.HumanoidRootPart
 
-                            -- 他プレイヤーを探索
                             for _, player in pairs(Players:GetPlayers()) do
                                 if player ~= localPlayer and player.Character then
                                     local targetCharacter = player.Character
@@ -1899,10 +1886,9 @@ AuraTab:AddToggle({
                                     if targetRootPart then
                                         local distance = (targetRootPart.Position - humanoidRootPart.Position).Magnitude
                                         if distance <= auraRadius then
-                                            -- SetNetworkOwnerを設定し、プレイヤーをテレポート
+                                
                                             SetNetworkOwner:FireServer(targetRootPart, targetCharacter.HumanoidRootPart.CFrame)
 
-                                            -- プレイヤーの位置をテレポート先座標に変更
                                             targetRootPart.CFrame = CFrame.new(targetPosition)
                                             print("Teleported player:", player.Name)
                                         end
@@ -1932,7 +1918,7 @@ AuraTab:AddToggle({
 
 P_a = 0
 AuraTab:AddToggle({
-    Name = "フリングオーラ",
+    Name = "Fling Aura",
     Color = Color3.fromRGB(0, 255, 0),
     Default = false,
     Flag = "FlingAura",
@@ -1984,10 +1970,9 @@ AuraTab:AddToggle({
     end
 })
 
-
 P_ap = 1
 AuraTab:AddToggle({
-    Name = "埋まるオーラ",
+    Name = "Hell send Aura",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
     Flag = "narakuGrab",
@@ -2041,7 +2026,7 @@ AuraTab:AddToggle({
 local poisonAuraCoroutine = nil
 local poisonHurtParts = getDescendantParts("PoisonHurtPart")
 AuraTab:AddToggle({
-    Name = "毒オーラ",
+    Name = "Poison Aura",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
     Callback = function(enabled)
@@ -2102,16 +2087,15 @@ AuraTab:AddToggle({
 })
 
 local LagTab = Window:MakeTab({
-    Name = "ラグ",
+    Name = "Line",
     Icon = "",
     PremiumOnly = false,
 })
 
-
 local running = false
 
 LagTab:AddToggle({
-    Name = "クレイジーライン",
+    Name = "Crazy Line",
     Default = false,
     Callback = function(state)
         running = state
@@ -2141,7 +2125,7 @@ LagTab:AddToggle({
 local running = false
 
 LagTab:AddToggle({
-    Name = "ラグサーバー",
+    Name = "Lag Server",
     Default = false,
     Callback = function(state)
         running = state
@@ -2168,7 +2152,7 @@ LagTab:AddToggle({
     end
 })
 local TeleportTab = Window:MakeTab({
-      Name = "テレポート",
+      Name = "Teleport",
       PremiumOnly = false
 })
 
@@ -2201,7 +2185,7 @@ local function teleportToPlayer(targetPlayer)
 end
 
 TeleportTab:AddDropdown({
-    Name = "プレイヤーを選ぶ",
+    Name = "Select Player",
     Default = "",
     Options = getPlayerList(),
     Callback = function(selected)
@@ -2219,7 +2203,7 @@ TeleportTab:AddDropdown({
 })
 
 TeleportTab:AddButton({
-    Name = "テレポート",
+    Name = "Teleport",
     Callback = function()
         if not selectedPlayer then
             print("プレイヤーが選択されていません。")
@@ -2234,7 +2218,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "初期位置",
+    Name = "Spawn Position",
     Default = false,
     Callback = function(value)
         Teleporting = value
@@ -2256,7 +2240,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "赤い家",
+    Name = "Led House",
     Default = false,
     Callback = function(value)
         Teleporting = value
@@ -2278,7 +2262,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "青い家",
+    Name = "Blue House",
     Default = false,
     Callback = function(value)
         Teleporting = value
@@ -2300,7 +2284,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "緑の家",
+    Name = "Green House",
     Default = false,
     Callback = function(value)
         Teleporting = value
@@ -2322,7 +2306,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "黄色い家",
+    Name = "Yellow House",
     Default = false,
     Callback = function(value)
         Teleporting = value
@@ -2344,7 +2328,7 @@ local Teleporting = false
 local RunService = game:GetService("RunService")
 
 TeleportTab:AddToggle({
-    Name = "紫の家",
+    Name = "Purple House",
     Default = false,
     Callback = function(value)
         Teleporting = value
