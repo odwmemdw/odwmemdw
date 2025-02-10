@@ -115,13 +115,13 @@ local MenuToys = ReplicatedStorage:WaitForChild("MenuToys")
 local strengthConnection
 local _G = { rotationStrength = 50}
 local GrabTab = Window:MakeTab({
-      Name = "掴み",
+      Name = "Grab",
     	Icon = "",
     	PremiumOnly = false
 })
 
 GrabTab:AddToggle({
-    Name = "投げる力",
+    Name = "Super Fling",
     Default = false,
     Callback = function(state)
          fling = state
@@ -134,13 +134,13 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddSlider({
-    Name = "",
+    Name = "Fling Power",
     Min = 400, 
     Max = 2000,
-    Default = strength,
+    Default = Strength,
     Color = Color3.fromRGB(0, 500,0),
     Increment = 100, 
-    ValueName = "強さ",
+    ValueName = "",
     Callback = function(value)
           strength = value
             print("Fling Strength set to:", strength)
@@ -149,10 +149,9 @@ GrabTab:AddSlider({
 
 local _G = { rotationStrength = 50}
 GrabTab:AddToggle({
-    Name = "回転掴み（掴んだまま）",
+    Name = "Spin Grab1",
     Default = false,
     Color = Color3.fromRGB(0, 1000, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -187,10 +186,9 @@ GrabTab:AddToggle({
 
 local _G = { rotationStrength = 50 }
 GrabTab:AddToggle({
-    Name = "回転掴み",
+    Name = "Spin Grab2",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "RotationToggle",
     Callback = function(enabled)
             if enabled then
@@ -247,10 +245,9 @@ GrabTab:AddToggle({
 local strengthConnection
 local _G = { strength = 200 }
 GrabTab:AddToggle({
-    Name = "掴んだ状態で飛ばす",
+    Name = "Line Grab",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
-    Save = true,
     Flag = "FlyStraightToggle",
     Callback = function(enabled)
             if enabled then
