@@ -769,7 +769,7 @@ BlobmanTab:AddDropdown({
 
 
 BlobmanTab:AddToggle({
-    Name = Kick All",
+    Name = "Kick All",
     Default = false,
     Color = Color3.fromRGB(0, 255, 0),
     Callback = function(enabled)
@@ -1184,7 +1184,7 @@ local defenseMode = "Fling"
 local autoDefendCoroutine = nil
 
 local Section = antiTab:AddSection({
-    Name = Auto Attacker"
+    Name = "Auto Attacker"
 })
 
 antiTab:AddDropdown({
@@ -1293,7 +1293,7 @@ playerTab:AddToggle({
 })
 
 playerTab:AddSlider({
-    Name = "Speed",
+    Name = "speed",
     Min = 16,
     Max = 1000,
     Default = 16,
@@ -1405,7 +1405,7 @@ playerTab:AddSlider({
 
 local InfiniteJumpEnabled = false
 playerTab:AddToggle({
-        Name = Infinite Jump",
+        Name = "Infinite Jump",
         Default = false,
         Callback = function(Value)
             InfiniteJumpEnabled = Value
@@ -1421,7 +1421,7 @@ local Plr = Players.LocalPlayer
 local Clipon = false
 local SteppedConnection
 playerTab:AddToggle({
-    Name = Noclip",
+    Name = "Noclip",
     Default = false,
     Callback = function(value)
         Clipon = value
@@ -1557,13 +1557,13 @@ local config = {
 
 local toysFolder = Workspace:FindFirstChild(localPlayer.Name .. "SpawnedInToys")
 
-local MainTab = Window:MakeTab({
+local explosionTab = Window:MakeTab({
     Name = "Explosion",
     Icon = "",
     PremiumOnly = false
 })
 
-MainTab:AddDropdown({
+explosionTab:AddDropdown({
     Name = "Select Player",
     Default = "",
     Options = (function()
@@ -1597,7 +1597,7 @@ task.spawn(function()
     end
 end)
 
-MainTab:AddToggle({
+explosionTab:AddToggle({
     Name = "Auto Unfreeze",
     Default = false,
     Callback = function(enabled)
@@ -1647,7 +1647,7 @@ MainTab:AddToggle({
                             end
                         end
                     end)
-                    wait(0)
+                    wait()
                 end
             end)
         else
@@ -2650,7 +2650,7 @@ local ragdollEnabled = false
 miscTab:AddToggle({
     Name = "Ragdoll All",
     Color = Color3.fromRGB(0, 255, 255),
-    Default = false
+    Default = false,
     Callback = function(enabled)
         ragdollEnabled = enabled
 
