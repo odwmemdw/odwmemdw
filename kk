@@ -134,7 +134,7 @@ GrabTab:AddToggle({
 })
 
 GrabTab:AddSlider({
-    Name = "Fling Power",
+    Name = "Fling Strength",
     Min = 400, 
     Max = 2000,
     Default = Strength,
