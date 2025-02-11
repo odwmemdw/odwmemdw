@@ -699,7 +699,7 @@ local function toggleAutoBlobman(enabled)
     end
 end
 local RunService = game:GetService("RunService")
-local ascendSpeed = 700000
+local ascendSpeed = 1
 local ascending = false
 local heartbeatConnection
 
