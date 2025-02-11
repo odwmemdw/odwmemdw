@@ -73,7 +73,7 @@ end)
 local allowedGameId = 6961824067
     if game.PlaceId == allowedGameId then
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/odwmemdw/odwmemdw/refs/heads/main/orionaahah')))()
-local Window = OrionLib:MakeWindow({Name = "鈴木んたま", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
+local Window = OrionLib:MakeWindow({Name = "SaykouiHub", HidePremium = false, IntoroEnabled = false,IntroText = "panpan!!♡" ,SaveConfig = true, ConfigFolder = "panpan!!♡"})
 
 local w = game:GetService("Workspace")
 local d = game:GetService("Debris")
