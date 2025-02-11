@@ -525,7 +525,7 @@ BlobmanTab:AddDropdown({
 })
 
 BlobmanTab:AddButton({
-    Name = "Bling",
+    Name = "Bring",
     Callback = function()
         if not selectedPlayer then
             print("プレイヤーが選択されていません。")
@@ -698,6 +698,61 @@ local function toggleAutoBlobman(enabled)
         print("[INFO] 自動Blobman機能を無効化しました")
     end
 end
+
+local RunService = game:GetService("RunService")
+local ascendSpeed = 600000
+local ascending = false
+local heartbeatConnection
+
+local function findBlobman()
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v.Name == "CreatureBlobman" then
+            if v:FindFirstChild("VehicleSeat") and v.VehicleSeat:FindFirstChild("SeatWeld") 
+               and v.VehicleSeat.SeatWeld.Part1:IsDescendantOf(game.Players.LocalPlayer.Character) then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function ascendBlobman()
+    local blobman = findBlobman()
+    if blobman then
+        if not blobman.PrimaryPart then
+            blobman.PrimaryPart = blobman:FindFirstChild("HumanoidRootPart") 
+                                  or blobman:FindFirstChild("MainPart") 
+                                  or blobman:FindFirstChildWhichIsA("BasePart")
+        end
+        
+        if blobman.PrimaryPart then
+            blobman.PrimaryPart.Anchored = true
+            ascending = true
+
+            if heartbeatConnection then
+                heartbeatConnection:Disconnect()
+                heartbeatConnection = nil
+            end
+
+            heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
+                if ascending then
+                    local currentPos = blobman.PrimaryPart.Position
+                    blobman:SetPrimaryPartCFrame(CFrame.new(currentPos + Vector3.new(0, ascendSpeed * deltaTime, 0)))
+                else
+                    if heartbeatConnection then
+                        heartbeatConnection:Disconnect()
+                        heartbeatConnection = nil
+                    end
+                end
+            end)
+        else
+            warn("BlobmanにPrimaryPartが設定されていません！")
+        end
+    else
+        warn("Blobmanに座っていません！")
+    end
+end
+
 local RunService = game:GetService("RunService")
 local ascendSpeed = 1
 local ascending = false
@@ -751,7 +806,6 @@ local function ascendBlobman()
         warn("Blobmanに座っていません！")
     end
 end
-
 
 local Section = BlobmanTab:AddSection({
 	Name = "Destroy Server"
@@ -866,6 +920,17 @@ BlobmanTab:AddButton({
     end
 })
 
+BlobmanTab:AddButton({
+    Name = "Freeze Blobman",
+    Callback = function()
+        if not ascending then
+            ascendBlobman()
+        else
+            ascending = false
+            warn("上昇を停止しました。")
+        end
+    end
+})
 
 
 local antiTab = Window:MakeTab({
