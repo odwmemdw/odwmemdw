@@ -848,7 +848,6 @@ updateFriendCache()
 BlobmanTab:AddToggle({
     Name = "Auto spawn&sit blobman",
     Default = false,
-    Save = true,
     Flag = "AutoBlobman",
     Callback = function(enabled)
         toggleAutoBlobman(enabled)
